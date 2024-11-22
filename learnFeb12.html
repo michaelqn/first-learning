@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+        .mystyle {
+          width: 100%;
+          padding: 25px;
+          background-color: coral;
+          color: white;
+          font-size: 25px;
+          box-sizing: border-box;
+        }
+        body > table > tbody > tr > td:nth-child(3) {
+          color: red;
+        }
+        body > table > tbody > tr > td:nth-child(2) {
+          color: blue;
+        }
+        body > table > tbody > tr > td:nth-child(1){
+          color: green;
+          font-weight: bold;
+          font-size: large;
+          width: 200px;
+          
+        }
+        body > table > tbody > tr > td:nth-child(3) {
+          color: red;
+          font-weight: bold;
+          font-size: large;
+          width: 10%;
+        }
+        
+        </style>
+        </head>
+        <body>
+          // create html table with 3 columns: id, name, stock
+          // create a function that will add a new row to the table
+          <table border="1">
+            <thead>
+              <tr>
+                <th width="30%">ID</th>
+                <th>Name</th>
+                <th>Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Add rows dynamically using JavaScript -->
+              <tr>
+                <td>1</td>
+                <td>Shoes</td>
+                <td>15</td>
+            </tbody>
+          </table>
+        </body>
+        <p>Click the "Try it" button to add the "mystyle" class to the DIV element:</p>
+
+<button onclick="myFunction()">Try it</button>
+
+<div id="myDIV">
+This is a DIV element.
+</div>
+
+<script>
+  document.querySelector("body > table > tbody > tr > td:nth-child(3)").style.color = "blue";
+  var array = [];
+
+  array[0] = 'Michael';
+  array[1] = 'Nguyen';
+  array[2] = 'Quang';
+  array[3] = 'Julie';
+  array[4] = 'Hoang';
+
+
+  array.splice(2,0,' Lindsey')
+  console.log('myArr array>>' + array)
+function myFunction() {
+   var element = document.getElementById("myDIV");
+   element.classList.add("mystyle");
+}
+// <div id="myDIV" class="mystyle">
+// This is a DIV element.
+// </div>
+
+// <script>
+// function myFunction() {
+//   var element = document.getElementById("myDIV");
+//   element.classList.remove("mystyle");
+// }
+///////////////////change class////////////////////
+// <script>
+// function myFunction() {
+//    const element = document.getElementById("myDIV");
+//    element.classList.remove("mystyle");  // Remove mystyle class
+//    element.classList.add("newone");  // Add newone class
+// }
+// 
+</script>
+</script>
+    <body>
+        <header>
+            <!-- place navbar here -->
+        </header>
+        <main></main>
+        <footer>
+            <!-- place footer here -->
+        </footer>
+
+    <script>
+const newArray = [];
+const mainArray = [{
+    id: 1,
+    name: "Shoes",
+    stock: 5,
+    price: 10
+  },
+  {
+    id: 2,
+    name: "Bag",
+    stock: 10,
+    price: 50
+  },
+];
+function getData(myId){
+    let {id, name, price, stock} = mainArray.find((item,index)=>item.id == myId)
+    let arryNew = {id:4,name:"Kelvin",stock,price}
+    mainArray.push({...arryNew})
+    // if(res.name.includes('Bag')){
+    //     res.name = "Mike"
+    // }
+    // let product = {name, price, stock: 2}
+    console.log('product>> ', mainArray);
+}
+
+getData(2)
+
+var stuff= ["uyuuyu", "76gyuhj***", "uiyghj", "56tyg", "juijjujh***"];
+
+for (let i = 0; i < stuff.length; i++){
+    stuff[i] = stuff[i].replace("***", 'kkk' )
+    if(stuff[i] == "uyuuyu"){
+        console.log('baollll', );
+    }
+}
+console.log('stuff>>> ', stuff );
+
+function maxChar(str){
+         let banaArr =   str.split('')
+              maxC = banaArr[0]
+              obj ={}
+            banaArr.forEach(item => {
+               obj[item] = (obj[item] || 0) + 1
+            });
+            console.log('obj>>>', obj);
+            // obj={
+            //   b: 1,
+            //   a:3,
+            //   n:2,
+            //   s:1
+            // }
+            max = 1
+            let banaArr1='';
+            for (let item in obj){
+                if(obj[item] > max){
+                    max = obj[item]
+                    banaArr1 = item
+                }
+            }
+            return banaArr1
+
+         console.log('banaArr',banaArr );
+}
+console.log('maxChar("bananas")', maxChar("bananas"));
+
+string ="abcdefcdk"
+function getstr(str, n){
+        a = [], start = 0
+
+        while(start<str.length){
+            a.push(str.slice(start, start+n))
+            start += n
+        }
+        return a
+}
+
+console.log('test', getstr(string, 3).join("-"));
+//////////////////////////////////////////
+const stations = ["New Haven", "West Haven", "Milford (closed)", "Stratford"];
+
+const test1 = stations.filter(item=> item.startsWith('Milford'))
+                .flatMap((item,index, arr)=> {
+                    return [`${item} - ${stations[index + 1]}`]
+                })
+console.log('stations>>>',test1 );
+////////////////////////////
+var devs = [
+  {
+      name: 'A',
+      age: 26,
+      tech: ['JavaScript','React'],
+      addr: {country:'India', city:'Pune'}
+  },
+  {
+      name: 'B',
+      age: 25,
+      tech: ['Node','AngularJs'],
+      addr: {country:'USA', city:'NY'}
+  },
+  {
+      name: 'C',
+      age: 27,
+      tech: ['React','AWS'],
+      addr: {country:'UK', city:'London'}
+  }
+];
+devs.forEach(item=> {
+    item.tech.forEach(item=> {
+        // console.log('teeeee',item );
+                      item.test = (item.includes('React') ? "Mike" : item)
+    })
+})
+console.log('DEVE', devs);
+
+devs.forEach((item, index)=> {
+  item.addr = item.addr.country.includes('India') ? {country:'Vietnam', city:'Hanoi'} : item.addr
+  item.total = item.age > 25 ? devs.reduce((sum, item)=> {
+      return sum + item.age
+  }, 0) : item.age
+})
+console.log('devsdevs', devs);
+
+// devs.filter(item=>item.age == index).map(({name,age})=> ({name,age}))
+a=[]
+let res4= devs.filter(item=>item.tech.includes('React')).map(item=> {
+                        item.test ='test'
+                      a.push(item.age)
+    return {
+        name: item.name,
+        age: item.age,
+        addr: item.addr.country.includes("India") ? {country:"Viet nam", city:"London"} : item.addr,
+        pax: item.age == 27 ? "B ticket" : item.age==26 ? "ccc": item.age,
+        total:item.age>25 ? a.reduce((sum,item)=>{
+            return sum + item
+        }) : item.age,
+
+        
+    }
+})
+console.log('res2>>> ', res4, 'aaa>> ', a);
+
+     res4.forEach((item, index)=> {
+        if(item.name == 'C'){
+            res4.splice(index,1)
+            res4.unshift(item)
+        }
+     })
+     res5= res4.map(({name,age})=> ({name,age}))
+
+console.log('res5>>> ', res5);
+
+    // res2.forEach((item, index)=> {
+    //               item.name =  (item.name =="C" ? "Linh" : item.name)
+    //               item.age = (item.age==21 ? "Young Age" : item.age)
+    // })
+    // res3 = res2.reduce((sum, item)=> {
+    //     return sum + item.age
+    // }, 0)
+    // console.log('res2>>> ', res3);
+
+let res = devs.filter(item=>item.tech.includes('React')).map(item=>{
+    return {
+        name: item.name == "A" ? 'MIKE' : item.name,
+        tech: item.tech
+    }
+})
+console.log('RES MIKE>>> ', res);
+let newArr = devs.filter(item=>item.name.includes("B")).map(({age,name})=>({age,name}))
+    newArr.forEach((item,index)=> {
+        item.years = item.age 
+        item.name = item.name.slice(0,3) =="B" ? 'c' : item.name
+        // if(item.name == "b"){
+        //     item.name = 'C'
+        //     console.log('DDDD', );
+        // }
+    })
+                   
+console.log('LINH>> ',newArr);
+
+// let res = devs.reduce((acc, {name, tech}) =>
+// {
+//   tech.includes("React") && acc.push({name, tech});
+//   return acc;
+// }, []);
+
+console.log('RES1>>>> ', res);
+////////////////////
+let arr =[
+  {name: 'a', status: 'f'},
+   {name: 'b', status: 'p'}, 
+   {name: 'c', status: 'p'},
+   {name: 'd', status: 'p'},
+  {name: 'e', status: 'f'},
+]
+   let output = arr.filter((item, index)=> {
+    return  item.status =='p'
+   }).map(({name})=>({name})).map(item=>item.name)//
+//    [
+//     "b",
+//     "c",
+//     "d"
+// ]
+   console.log('outputoutput', output);//OUtput: below
+//    [
+//     {
+//         "name": "b"
+//     },
+//     {
+//         "name": "c"
+//     },
+//     {
+//         "name": "d"
+//     }
+// ]
+   colorArr = []
+   output.forEach((item,index)=> {
+   
+    let colorBg = document.createElement('div')
+        colorBg.classList.add("mystyle")
+        colorBg.setAttribute("class",'mystel')
+        colorBg.innerHTML = item
+        colorBg.style.backgroundColor = (
+            item == "d" ? "green" 
+          : item== "b" ? "red"
+          : "yellow")
+       colorArr.push(colorBg)
+       console.log('colorArr>>> ', colorArr);
+    // if(item.includes("c")){
+    //     output[index]='cd'
+    // } else if(item.includes('d')){
+    //     output.splice(index,1)
+    //     output.unshift(item)
+    // }
+   })
+   colorArr.forEach(item=> {
+    document.body.appendChild(item)
+   })
+   console.log('output>>> ', output);
+
+   let counter = 0;
+for (var i = 1; i <= 10; i++) { //event i = 0, still get result 11
+  counter+= i;
+}
+console.log('counter>>> ',counter);//55
+console.log('i >>> ',i)
+/////////////////////////////
+let arr2 = [1, 2, 3];
+for (var i = 0; i < arr2.length; i++) {
+  setTimeout(()=> {
+    console.log('ARR>> ',arr2[i]);
+  }, 1000)
+}
+///////////////////////////////////////////////////
+let colorOptions = ["green", "blue", "orange"];
+        let optionsArray = [];
+    
+        colorOptions.forEach((item) => {
+           let colorOption = document.createElement("div");
+           colorOption.innerText = item;
+           colorOption.setAttribute('class', 'demo')
+           colorOption.style.backgroundColor = item;
+           optionsArray.push(colorOption);    
+          
+        });
+    
+    
+       optionsArray.forEach((item) => {
+          console.log('Optin>>>', item);
+          document.body.appendChild(item);
+       });
+       console.log('optionArrr>> ', optionsArray);
+       ///////////////////////////
+       const products = [{
+  "id": "111",
+  "name": "grapes",
+  "status": "Linked",
+}, {
+  "id": "222",
+  "name": "banana",
+  "status": "Existing",
+}, {
+  "id": "333",
+  "name": "mango",
+  "status": "Existing",
+}, {
+  "id": "444",
+  "name": "salad",
+  "status": "Linked",
+
+}, {
+  "id": "555",
+  "name": "juice",
+  "status": "Existing",
+}];
+let myproducts = Object.assign([], products)
+myproducts.forEach((item, index)=> {
+  item.address = item.name.includes('banana') ? 'BANA' : item.name
+  // if(item.name == "banana"){
+  //   item.name = "BANA"
+  // }
+})
+
+let myitem = myproducts.filter(item=>item.status=='Existing').map(item=>item.name)
+
+myitem.forEach((item, index)=> {
+  item.fname = 'Mike'
+  if(item == 'banana'){
+
+    myitem[index] = 'BANA'
+  }
+})
+console.log('myitemARRAY>>>', myitem);
+console.log('myitem>>>', myitem.length-1);
+
+
+//https://stackoverflow.com/questions/72356724/efficient-way-of-filtering-array-and-mapping-in-es6
+const result = products.filter(({status}) => status === 'Existing')
+                       .map(({id, name}) => ({id, name}));
+                       
+console.log('RESUTT>>>', result);
+
+
+
+
+const resust3 = products.filter(item=> {
+  return item.name =='juice'
+}).map(item=> {
+  return item.name 
+})
+
+resust3.forEach((item, index)=> {
+
+  if(item =='juice'){
+    item.age = (item=='juice' ? 'Hello' : item)
+    resust3[index] = "BANA"
+    if(resust3[index] == "BANA"){
+      resust3[index] = "ORANGE"
+    }
+
+  }
+})
+console.log('resust3>>>',resust3 );
+    </script>
+    </body>
+</html>

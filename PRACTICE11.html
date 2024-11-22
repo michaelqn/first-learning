@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+           array = [
+      {id:1, month:'feb', value: 100},
+      {id:2, month:'april', value: 100},
+      {id:3, month:'may', value: 100},
+      {id:4, month:'june', value: 100},
+    ]
+    array2 = [
+      {id:1, month:'feb', value: 62},
+      {id:2, month:'april', value: 100},
+      {id:3, month:'may', value: 20},
+      {id:4, month:'june', value: 100},
+    ]
+    mikeArr = Object.assign([], array)
+
+
+   let test1 = mikeArr.map((item,index)=>{
+        if(item.month == 'feb'){
+            mikeArr[index].month = 'february'
+
+        }
+        return {
+                month:item.month="february"?'Mike':item.month
+            }
+        
+    })
+
+    console.log('test1', test1);
+
+
+    const mainArray = [{
+    id: 1,
+    name: "Shoes",
+    stock: 15,
+    price: 10
+  },
+  {
+    id: 2,
+    name: "Bag",
+    stock: 10,
+    price: 50
+  },
+  {
+    id: 3,
+    name: "LV",
+    stock: 70,
+    price: 15
+  },
+  {
+    id: 4,
+    name: "HEM",
+    stock: 4,
+    price: 40
+  },
+];
+
+let id = 1
+function getdata(id) {
+  let myid =  mainArray.find((item, index)=> {
+        return item.id == id
+    })
+    // console.log('myid', myid);
+    if(myid.name == 'Shoes'){
+        myid.name = 'Shoes for sale'
+    myid.priceTotal = myid.price * 2
+  }
+    console.log('myid', myid);
+}
+
+
+getdata(id)
+
+
+
+mikeArray = [
+      {id:1, month:'feb', value: 100},
+      {id:2, month:'april', value: 100},
+      {id:3, month:'may', value: 100},
+      {id:4, month:'june', value: 100},
+    ]
+    linhArray = [
+      {id:1, month:'feb', value: 62},
+      {id:2, month:'sept', value: 100},
+      {id:3, month:'july', value: 20},
+      {id:4, month:'june', value: 100},
+    ]
+    arr = []
+function callfunc() {
+  for(let item of mikeArray){
+    for(let element of linhArray){
+        if(element.month.includes(item.month)){
+            let myres = element
+            arr.push(element)
+            console.log('arr', arr);
+        }
+    }
+  }//GOOD CODE BELOW
+    // mikeArray.forEach((item, index)=> {
+    //     linhArray.forEach((element, i)=> {
+    //         // if(element.includes(item.month =='feb')){
+    //         //     alert('hello')
+
+    //         // }
+    //         if(element.month.includes(item.month)){
+    //             let myres = element
+          
+    //             arr.push(element)
+    //             console.log('arr', arr);
+    //         }
+    //     })
+    // })
+}
+   
+
+let test = callfunc()
+console.log('test>>.', test);
+
+    </script>
+</body>
+</html>

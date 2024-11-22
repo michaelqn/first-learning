@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+    <head>
+ <style>
+    .demo{
+        color: 'red'
+    }
+    .blue {
+        background-color: blue;
+    }
+ </style>
+    </head>
+
+    <body>
+        <table border="2">
+            <!-- <thead class="thead-dark"> -->
+              <tr>
+                <th scope="col">Tour</th>
+                <th scope="col">Day</th>
+                <th scope="col">Time</th>
+              </tr>
+            <!-- </thead> -->
+            <tbody id="tableBody">
+                                              
+            </tbody>
+          </table>
+          <div id="myDynamicTable"></div>
+        <header>
+            <!-- place navbar here -->
+        </header>
+        <script>
+          const Google = {
+	locations:['Mountain View','New York','London']
+}
+
+const {locations:[name, test]} = Google
+console.log('location>>> ',name, test)//result: Mountain View
+          var productsS = [
+    {name: 'cucumber', type: 'vegetable'},
+    {name: 'banana', type: 'fruit'},
+    {name: 'celery', type: 'vegetable'},
+    {name: 'orange', type: 'fruit'}
+]
+
+let me = productsS.filter(product => {
+  return product.type === 'fruit'
+}).map(({name})=>({name}))
+console.log('MEMEME>> ', me);
+              const products = [{
+  "id": "111",
+  "name": "grapes",
+  "status": "Linked",
+}, {
+  "id": "222",
+  "name": "banana",
+  "status": "Existing",
+}, {
+  "id": "333",
+  "name": "mango",
+  "status": "Existing",
+}, {
+  "id": "444",
+  "name": "salad",
+  "status": "Linked",
+
+}, {
+  "id": "555",
+  "name": "juice",
+  "status": "Existing",
+}];
+const resust3 = products.filter(item=> {
+  return item.status =="Existing"
+}).map(item=> {
+  return item.name 
+})
+console.log('resust3>>>',resust3 );
+resust3.forEach((item, index)=> {
+                if(item=="banana"){
+                  resust3[index] = "BANA"
+                }else if(item =="juice"){
+                  resust3[index] = "ORANGE"
+                }
+        //  resust3[index]= item.includes('banana') ? 'BANA' : item
+})
+console.log('resust3resust3>>>', resust3);
+//  resust3.forEach((item, index)=> {
+//              item.age = (item.id == "555" ? 65 : item.id)
+//              item.supersalad = (item.status == "Existing" ? 'great salad' : item.name)
+//  })
+//  console.log('supersalad>>>',resust3 );
+//https://stackoverflow.com/questions/72356724/efficient-way-of-filtering-array-and-mapping-in-es6
+// const result = products.filter(({status}) => status === 'Existing')
+//                        .map(({id, name}) => ({id, name}));
+
+display =[]
+const result = products.filter(item=> {
+            let html =   document.createElement('div')
+            html.setAttribute('id', 'demo')
+                html.style.background = 
+                item.name =="juice" ? 'red'
+                : item.name=="salad" ? 'blue'
+                : item.name =="mango" ? 'yellow':"cyan"
+                // item ?? "Another way"
+                html.innerHTML = item.name
+                html.classList.add('.demo')
+                display.push(html)
+ 
+})
+
+
+display.forEach(element => {
+    document.body.appendChild(element)
+});
+
+console.log('html>>>', display);       
+console.log('RESUTT>>>', result);
+///////////////////////////////////////////////////////////////////////
+const data = [
+    {Name:'Sydney', Day: 'Monday', Time: '10:00AM'},
+    {Name:'New York', Day: 'Monday',Time: '11:00AM'},
+]; // any json data or array of objects
+
+const tableData = data.map(value => {
+ return (
+  `<tr>
+        <td>${value.Name}</td>
+        <td>${value.Day}</td>
+        <td>${value.Time}</td>
+    </tr>
+  `
+ )
+
+})
+
+const tableBody = document.querySelector("#tableBody");
+tableBody.innerHTML = tableData;
+///////////////////////////////////////////////////////////
+function addTable() {
+  data.forEach((item, index)=> {
+    var myTableDiv = document.getElementById("myDynamicTable");
+
+var table = document.createElement('TABLE');
+table.border = '1';
+table.style.color = 'red'
+table.setAttribute('id', 'mike')
+table.setAttribute('class', 'blue')
+table.classList.add('blue')
+
+var tableBody = document.createElement('TBODY');
+table.appendChild(tableBody);
+
+for (var i = 0; i < 3; i++) {
+  var tr = document.createElement('TR');
+  tableBody.appendChild(tr);
+
+  for (var j = 0; j < 4; j++) {
+    var td = document.createElement('TD');
+    td.width = '75';
+    td.appendChild(document.createTextNode(`${item.Name} ${item.Day}`));
+    tr.appendChild(td);
+  }
+}
+myTableDiv.appendChild(table);
+  })
+
+}
+addTable();
+////////////////////////////
+var h1 = document.createElement('h1')
+    h1.innerHTML ='Welcome'
+    document.body.appendChild(h1)
+var cssApply = document.getElementsByTagName('h1')[0]
+console.log('cssApply>> ', cssApply);
+    cssApply.classList.add('blue')
+    //////////////////////////////////
+var btn = document.createElement('button');
+btn.innerHTML = "Create Table";
+document.body.appendChild(btn);
+btn.addEventListener("click", createTable, true);
+function createTable(){
+var div = document.createElement('div');
+div.setAttribute("id", "tbl");
+div.setAttribute('class', 'testing')
+document.body.appendChild(div)
+	document.getElementById("tbl").innerHTML = "<table border = '1'>" +
+  '<tr>' +
+    '<th>Header 1</th>' +
+    '<th>Header 2</th> ' +
+    '<th>Header 3</th>' +
+  '</tr>' +
+  '<tr>' +
+    '<td>Data 1</td>' +
+    '<td>Data 2</td>' +
+    '<td>Data 3</td>' +
+  '</tr>' +
+  '<tr>' +
+    '<td>Data 1</td>' +
+    '<td>Data 2</td>' +
+    '<td>Data 3</td>' +
+  '</tr>' +
+  '<tr>' +
+    '<td>Data 1</td>' +
+    '<td>Data 2</td>' +
+    '<td>Data 3</td>' +
+  '</tr>' 
+  ///Use can use string backtick assign == document.getElementById("tbl").innerHTML above table below
+//   `<table style="width:100%">
+//   <tr>
+//     <th>Company</th>
+//     <th>Contact</th>
+//     <th>Country</th>
+//   </tr>
+//   <tr>
+//     <td>Alfreds Futterkiste</td>
+//     <td>Maria Anders</td>
+//     <td>Germany</td>
+//   </tr>
+//   <tr>
+//     <td>Centro comercial Moctezuma</td>
+//     <td>Francisco Chang</td>
+//     <td>Mexico</td>
+//   </tr>
+// </table>
+//   `
+};
+        </script>
+   
+    </body>
+</html>

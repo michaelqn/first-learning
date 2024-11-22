@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Title</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS v5.2.1 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+
+</head>
+
+<body>
+    <b>Hello world</b>
+<script>
+      
+array = [
+  {month:'feb', value: 100},
+  {month:'april', value: 100},
+  {month:'may', value: 100},
+  {month:'june', value: 100},
+]
+adjustValue=[90, 80]
+months=['feb', 'april']
+
+
+function addValue(array, months, adjustValue){
+  // console.log('adjustValue',adjustValue );
+      let res =  array.filter((item, index)=> {
+                      return item.month.includes('feb') == months.includes('feb') 
+                        ||   item.month.includes('april') == months.includes('april') 
+        })
+        res.forEach((item, index) => {
+            item.food = (item.month =="feb" ? "burger" : 'sandwich')
+          console.log('Index 1>>>', index);
+          if(item.month == "feb"){
+            item.value = adjustValue.includes(90) ? adjustValue[0] : callme()
+            if(index){
+            array.unshift(item)
+          }
+          }else if(item.month =="april"){
+            item.value = adjustValue.includes(80) ? adjustValue[index] : "No"
+          }
+         
+        })
+
+        function callme(){
+          return `Month ${adjustValue.value}`
+        }
+
+
+        console.log('RES>>> ', array);
+
+
+
+//   array.forEach((item, index)=> {
+//     if(item.month.includes('feb') == months.includes('feb')){
+   
+//       // item.month = months[0]
+//       item.value = adjustValue[0]
+//     } else if(item.month.endsWith('april') == months.includes('april')){
+//       item.value = adjustValue[1] * 2
+//     }
+  
+// })
+// console.log('My array>>> ', array);
+}
+
+addValue(array, months, adjustValue)
+var options = [
+  { name: 'One', assigned: true }, 
+  { name: 'Two', assigned: false }, 
+  { name: 'Three', assigned: true }, 
+];
+
+// var reduced = options.reduce(function(result, option) {
+//   console.log('result>',result );
+//   if (option.assigned) {
+//     return result.concat({
+//       name: option.name,
+//       newProperty: 'Foo'
+//     });
+//   }
+//   return result;
+// }, []);
+// console.log('reduced:>>>', reduced);
+const stations = ["New Haven", "West Haven", "Milford (closed)", "Stratford"];
+let me = stations.filter((item, index)=> {
+  return item.includes('Haven')
+})
+console.log('me>>>>', );
+const line = stations
+  .filter((name) => !name.endsWith("(closed)"))
+  .flatMap((name, index, arr) => {
+    // Without the arr argument, there's no way to easily access the
+    // intermediate array without saving it to a variable.
+    if (index === arr.length - 1) return []; // last station has no next station
+    console.log('Miktektesst', `${arr[index + 1]}`);
+    return [`${name} - ${arr[index + 1]}`];
+  });
+console.log('LINeLine',line); // ['New Haven - West Haven', 'West Haven - Stratford']
+
+///////////////////////////
+const charsArray = ["ä", "t", "i"]
+    const replaceChars = (char) => {
+          switch (char) {
+            case "ä":
+              return ["a", "e"];
+            default:
+              return char;
+          }
+        };
+    const cleanArray = charsArray.flatMap((c) => replaceChars(c));
+    console.log('cleanArray:>>>>',cleanArray);
+
+
+
+var devs = [
+  {
+      name: 'A',
+      age: 26,
+      tech: ['JavaScript','React'],
+      addr:{
+          country:'India',
+          city:'Pune'
+      }
+  },
+  {
+      name: 'B',
+      age: 25,
+      tech: ['Node','AngularJs'],
+      addr:{
+          country:'USA',
+          city:'NY'
+      }
+  },
+  {
+      name: 'C',
+      age: 27,
+      tech: ['Java','AWS'],
+      addr:{
+          country:'UK',
+          city:'London'
+      }
+  }
+]
+test4 = devs.filter(item=>item)
+test4 = devs.map(({name, age, tech})=> ({name, age, tech}))
+console.log('test4>>> ', test4);
+
+
+test1 = devs.filter(item=>item.name.includes("B")).map(({name,age})=>({name,age}) )
+test2= devs.filter(item=> item.age == 27).map(({name,age})=>({name,age}) )
+test3 = devs.map(item => {
+  return item.age * 2
+})
+// test3.forEach((item, index)=> {
+//   let html = document.getElementById('test')
+//       html.classList.add('demo')
+//       html.setAttribute('class','tset')
+//   console.log('dsdfsdfds', item);
+//             test3[index] = (item > 50 ? "Fodd" : "Pork")
+// })
+console.log('test3333>>>', test3);
+mike = devs.filter(item=>item.addr.country.includes('USA'))
+           .map(({name,tech})=> ({name,tech}))
+           let miketest = mike[0].tech
+           console.log('mikeLINHtest',miketest );
+          //  for(var i = 0; i < stuff.length; i++)
+          miketest.forEach((item, index)=> {
+                          miketest[index] = (item=="Node"?"Mike":item)
+                          miketest[index] = (item == 'AngularJs' ? "Photo" : item)
+                          if(miketest.includes("Photo")){
+                            miketest.splice(index,1)
+                            miketest.unshift('Photo')
+                          }
+                          // miketest[index] = (item =="Photo"?"UX":item)
+          })
+            // for (var i = 0; i < miketest.length;  i++){
+          
+            //   miketest[i]  = miketest[i].replace('Node', 'Mike')
+            //   miketest[i]  = miketest[i].replace('AngularJs', 'Nguyen')
+            // }
+           console.log('NEWmIKE>>> ', miketest);
+mydata = devs.filter(item=> item.name.includes('C')).map(({name,age})=> ({name,age}))
+newArr = devs.filter(item => item.age == 27).map(({name, tech})=>({name, tech}) )
+
+arrMap = devs.map(({name, age})=> ({name, age}))
+
+// let newArr =devs.filter(temp => temp.tech.includes('React')).map(({name,tech}) => ({name,tech}));
+console.log('mike>>> ', mike);//Just disp
+///////////////////////////////////////////////////////////
+var arr = ["one","two","three"];
+arr.forEach(function(part) {
+  part = "four";
+  return "four";
+})
+// console.log('mikearr', arr);
+// alert(arr);
+arr.forEach(function(item, index, theArray) {
+  if(item.includes("one")){
+    arr[index] = "hello world";
+  } else if(item == "three"){
+    // arr[index] = "hello Bao";
+     arr.splice(index, 1)
+    arr.unshift(item)
+  }
+ 
+});
+console.log('arr>>>',arr );//[
+//     "three",
+//     "hello world",
+//     "two"
+// ]
+
+Output: 
+array = [
+  {month:'feb', value: 90},
+  {month:'april', value: 90},
+  {month:'may', value: 100},
+  {month:'june', value: 100},
+]
+////////////////////////////////////////////////
+const newArray = [];
+const mainArray = [{
+    id: 1,
+    name: "Shoes",
+    stock: 15,
+    price: 10
+  },
+  {
+    id: 2,
+    name: "Bag",
+    stock: 10,
+    price: 50
+  },
+  {
+    id: 3,
+    name: "LV",
+    stock: 70,
+    price: 15
+  },
+  {
+    id: 4,
+    name: "HEM",
+    stock: 4,
+    price: 40
+  },
+];
+let linkArray = mainArray.map((item, index) => {
+  return {
+    id: item.id,
+    name: item.name =='Shoes' ? getName() : item.name,
+    stock: item.stock > 5 ? 'In Stock' : 'Out of Stock',
+    price: item.price == 50 ? 'Manager Price' : getPrice(item.price),
+    total: item.stock * item.price,
+    discount: item.price > 10 ? 'Yes' : 'No',
+    link: `https://www.${item.name}.com`,
+    milDiscount: item.price > 10 && item.stock > 1 ? 'Yes' : 'No'  
+  }
+})
+function getPrice(price) {
+  if(price < 5){
+    return 'Manager Price'
+  } else if(price > 5){
+    return 'Regular Price'
+  } else {
+    return 'Unk'
+  }
+}
+
+
+function getName() {
+  return 'Hoka shoes'
+}
+console.log('linkArray..', linkArray);
+
+
+const mikeArray = [];
+function callmef(index){
+ 
+ let {id, name, price} = mainArray.find( item => {
+    return item.id == index
+  })
+  // console.log('getItem', getItem);
+  let newA = {id:3,name, price, stock: 'Unk'}
+  mainArray.push(newA)
+  console.log('kkkkk', mainArray);
+}
+
+callmef(2)
+
+proArr = []
+function callmike(index){
+ let {name, stock, price} = mainArray.find(item=>item.id !== index)
+
+ let arrMe = {name, stock, price, id:6}
+  proArr.push(arrMe)
+  console.log('test3test3test3test3',proArr );
+  let removeArr = mainArray.find(item => item.id !== index)
+  console.log('removeArr', removeArr);
+}
+
+callmike(2)
+function call1(arr){
+//  let test4 =  mainArray.find(item=> item.id !== index)
+// mainArray.splice(index,1)
+ console.log('attest4test4test4est',mainArray );
+}
+call1(mainArray)
+
+
+function clicked(inp) {
+  let exist = newArray.find(ele => ele.id === inp)
+  console.log('existexist', exist);
+  if(exist) {
+    exist.stock++
+  } else {
+    let {id,name, price} = mainArray.find(ele => ele.id === inp)
+    exist = [{id,name, price, stock: 1}];
+    newArray.push(exist)//push array into another array
+  }
+  console.log('newArray :', newArray)
+  newArray.forEach((item, index)=> {
+    item.forEach((item,index)=> {
+      console.log('itemitem????', item);
+    })
+    
+  })
+  console.log('mainArray :', mainArray)
+}
+clicked(2)
+    </script>
+</body>
+
+</html>
