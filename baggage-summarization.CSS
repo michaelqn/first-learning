@@ -1,0 +1,766 @@
+
+@import "src/styles/ppbm/abstracts/variables";
+@import "src/styles/ppbm/abstracts/mixins";
+@import "src/styles/ppbm/base/fonts";
+@import "src/styles/ppbm/pages/home";
+@import "src/styles/ppbm/components/table";
+@import "src/styles/ppbm/components/tooltip";
+
+.dropdown-width {
+    width: 48%;
+}
+
+.name-text {
+    margin-right: 5px;
+    font-weight: 600;
+}
+
+.update-time-text {
+    margin-right: 16px;
+}
+
+.date-text {
+    margin-right: 37px;
+    font-weight: 600;
+}
+
+.hold-text {
+    margin-right: 48px;
+    font-weight: 600;
+}
+
+.hold-reason-text {
+    margin-right: 35px;
+}
+
+.update-type {
+    margin-bottom: 20px;
+    margin-top: 7px;
+}
+
+.short-connect-text {
+    margin-right: -16px;
+    font-weight: 600;
+}
+
+.load-status-tooltip {
+    position: relative;
+}
+
+.load-status-tool-tip div.tooltip-display {
+    display: none;
+    color: #fff;
+    text-decoration: none;
+    padding: 3px;
+}
+
+.load-status-tool-tip:hover div.tooltip-display {
+    box-sizing: border-box;
+    color: #fff;
+    letter-spacing: 1;
+    line-height: 16px;
+    background-color: #0c2340;
+    text-align: center;
+    padding: 10px 5px;
+    border-radius: 4px;
+    position: absolute;
+    z-index: 1;
+    display: block;
+    top: 44px;
+    white-space: nowrap;
+    width: 320px;
+    height: 145px;
+    box-shadow: 0px 0px 8px -1px #0c2340;
+    font-size: 0.9vw !important;
+    line-height: 20px !important;
+}
+
+.load-status-tool-tip:hover div.tooltip-display:before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0px;
+    border-left: 13px solid #0c2340;
+    border-right: 10px solid transparent;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+}
+
+::ng-deep .mat-checkbox-checked.mat-primary .mat-checkbox-background {
+    background: $atlantic !important;
+}
+
+::ng-deep .mat-checkbox-frame {
+    border-width: 1px !important;
+}
+
+.bags-summarization {
+    padding: 0px 3.3%;
+}
+
+.right-content {
+    display: flex;
+    justify-content: space-around;
+    padding: 0px;
+    margin-left: -30px;
+    flex: auto;
+    padding-left: 0px;
+    padding-right: 0px;
+
+    .small-label {
+        font-size: 13px;
+    }
+}
+
+#flight-list {
+    .custom-option {
+        padding-left: 5%;
+    }
+}
+
+.small-text {
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.content-value {
+    color: #0c2340;
+    font-family: OpenSansSemiBold;
+    font-size: 1vw;
+    letter-spacing: 0;
+    line-height: 24px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-ontime {
+    margin-left: -38px;
+}
+
+.btn-group {
+    width: -webkit-fill-available;
+}
+
+.btn {
+    background-color: $light-grey;
+    color: #0C2340;
+    border-color: $light-grey;
+    border: 1px solid #FFFFFF;
+    font-family: $OpenSansSemiBold;
+    font-size: 0.8vw;
+    letter-spacing: 0;
+    line-height: 20px;
+}
+
+.btn:focus,
+.active {
+    background: $brand-color;
+    color: #FFFFFF;
+}
+
+.form-control {
+    width: 75%;
+}
+
+.header-mb {
+    margin-bottom: -14px !important;
+    margin-top: 40px !important;
+}
+
+.type-col {
+    padding-right: 20px;
+}
+
+.btn-buttons {
+    padding-right: 0px;
+    margin-bottom: 12px;
+}
+
+.refresh-ml {
+    margin-right: 399px !important;
+}
+
+.pb-on-caret~.caret-up {
+    margin-left: 5px;
+}
+
+.pb-on-caret~.caret-down {
+    margin-left: 5px;
+}
+
+.bag-tag-number-caret~.caret-up {
+    margin-left: 26px;
+}
+
+.bag-tag-number-caret~.caret-down {
+    margin-left: 26px;
+}
+
+.bags-status-caret~.caret-down {
+    margin-left: 29px;
+}
+
+.bags-status-caret~.caret-up {
+    margin-left: 29px;
+}
+
+.bag-conx-time-caret~.caret-down {
+    margin-left: 20px;
+}
+
+.bag-conx-time-caret~.caret-up {
+    margin-left: 20px;
+}
+
+.type-caret~.caret-down {
+    margin-left: 7px;
+}
+
+.type-caret~.caret-up {
+    margin-left: 7px;
+}
+
+.load-status-caret~.caret-down {
+    margin-left: 8px;
+}
+
+.load-status-caret~.caret-up {
+    margin-left: 8px;
+}
+
+.pax-conx-time-caret~.caret-down {
+    margin-left: 19px;
+}
+
+.pax-conx-time-caret~.caret-up {
+    margin-left: 19px;
+}
+
+.last-scan-time-caret~.caret-down {
+    margin-left: 19px;
+}
+
+.last-scan-time-caret~.caret-up {
+    margin-left: 19px;
+}
+
+.last-status-caret~.caret-down {
+    margin-left: 39px;
+}
+
+.last-status-caret~.caret-up {
+    margin-left: 39px;
+}
+
+.pnr-caret~.caret-down {
+    margin-left: 7px;
+}
+
+.pnr-caret~.caret-up {
+    margin-left: 7px;
+}
+
+.pax-name-caret~.caret-down {
+    margin-left: 20px;
+}
+
+.pax-name-caret~.caret-up {
+    margin-left: 20px;
+}
+
+.awaiting-seat-caret~.caret-down {
+    margin-left: 41px;
+}
+
+.awaiting-seat-caret~.caret-up {
+    margin-left: 41px;
+}
+
+.notes-icon {
+    cursor: pointer;
+    display: block;
+    content: url($notesIcon);
+}
+
+.refresh-time {
+    margin-right: -5px;
+    margin-bottom: -8px;
+}
+
+.flight-number-checkbox {
+    height: 20px;
+    width: 20px;
+    padding-top: 12px !important;
+
+    input[type='checkbox'] {
+        box-sizing: border-box;
+        height: 18px;
+        width: 18px;
+        border: 1px solid $dark-gray-second;
+        border-radius: 2px;
+    }
+
+    input[type='checkbox']:checked {
+        accent-color: $atlantic !important;
+    }
+}
+
+.customer-name {
+    position: relative;
+}
+
+.customer-name-tool-tip span {
+    display: none;
+    color: #fff;
+    text-decoration: none;
+    padding: 3px;
+}
+
+.customer-name-tool-tip:hover span {
+    box-sizing: border-box;
+    border: 1px solid #fff;
+    color: #fff;
+    font-family: OpenSansSemiBold;
+    font-size: 13px;
+    letter-spacing: 0;
+    line-height: 16px;
+    font-weight: 600;
+    background-color: #0c2340;
+    text-align: center;
+    padding: 10px 5px;
+    border-radius: 4px;
+    position: absolute;
+    z-index: 1;
+    display: block;
+    top: -20px;
+    white-space: nowrap;
+}
+
+.pax-name-icon {
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.pnr-icon {
+    margin-right: 4px;
+    vertical-align: middle;
+    margin-left: 19px
+}
+
+.bag-tag-number {
+    text-align: left;
+    width: 10%;
+}
+
+.bag-underline {
+    text-decoration: underline;
+}
+
+.last-status {
+    padding-left: 0px;
+    width: 11%;
+}
+
+.pb-on {
+    width: 6%;
+    text-align: left;
+}
+
+.awaiting-seat {
+    width: 16%;
+    text-align: left;
+}
+
+.bag-conx-time {
+    text-align: left;
+    padding: 0px;
+    width: 8%;
+}
+
+.pax-conx-time {
+    text-align: left;
+    width: 8%;
+}
+
+.load-status {
+    text-align: left;
+    padding-right: 18px
+}
+
+.tr-height {
+    background-color: #e6e6e6;
+    height: 45px !important;
+}
+
+.top-header {
+    float: left;
+}
+
+.pbon {
+    width: 8%;
+    padding-top: 10px !important;
+}
+
+.checkbox-first {
+    padding-top: 12px !important;
+}
+
+.bags-number {
+    font-size: 18px;
+    font-weight: bold;
+    color: #0C2340;
+    margin-bottom: -30px;
+}
+
+.header-bags {
+    margin-right: -5px;
+    margin-left: -23px;
+    margin-top: 28px;
+}
+
+.left-content {
+    padding-right: 0px;
+    //padding-left: 0px;
+}
+
+.btn-hold {
+    margin-left: 10px;
+    color: #666666;
+}
+
+.edit-flight-btn {
+    margin-top: -30px;
+    padding: 0px;
+    margin-right: 5px;
+}
+
+.pax-name {
+    text-align: left;
+    width: 11%;
+}
+
+.status-time {
+    padding-left: 9px;
+    width: 6%;
+}
+
+.last-scan-time {
+    width: 9%;
+    text-align: left;
+    padding-left: 10px;
+}
+
+.pnr-header {
+    width: 9% !important;
+    text-align: left;
+    padding-left: 32px;
+}
+
+.bags-table {
+    display: none;
+}
+
+.table-align {
+    text-align: right;
+}
+
+.dest-caret-up {
+    display: inline-block;
+    height: 10px;
+    width: 16px;
+    background-image: url($caretUp);
+    text-align: center;
+    margin-left: 10px;
+}
+
+#flex-container {
+    display: flex;
+    justify-content: center;
+}
+
+.bags-status {
+    text-align: left !important;
+    width: 10%;
+}
+
+.main-table-details {
+    text-align: left !important;
+    height: 45px !important;
+
+    td {
+        height: 24px;
+        font-size: 0.9vw !important;
+        letter-spacing: 0;
+        line-height: 17px !important;
+        padding-top: 15px;
+        cursor: pointer;
+    }
+}
+
+.edit-flight-btn {
+    text-align: right;
+    margin-top: -30px;
+    padding: 0px;
+}
+
+.plus-icon {
+    cursor: pointer;
+    display: inline-block;
+    content: url($plusIcon);
+    margin-left: 10px;
+    position: absolute;
+    margin-top: 7px;
+}
+
+.edit-btn {
+    @include discovery-common-text($white, $OpenSansSemiBold, 16px, 0, 24px);
+    height: 38px;
+    border-radius: 4px;
+    background-color: $atlantic;
+    font-weight: 600;
+    text-align: center;
+    width: 127px;
+    margin-bottom: 1rem;
+    margin-right: -11px
+}
+
+.tab-label {
+    //Arguments - color, font-family, font-size, letter-spacing, line-height.
+    @include discovery-common-text(#0C2340, $OpenSansSemiBold, 16px, 0, 24px);
+    text-align: center;
+    font-weight: bold;
+}
+
+::ng-deep .mat-tab-list .mat-tab-labels .mat-tab-label-active {
+    color: #0c2340;
+    font-weight: bolder;
+    opacity: 1;
+}
+
+::ng-deep .mat-ink-bar {
+    background-color: #0c2340;
+    border-bottom: 4px solid #0c2340;
+}
+
+::ng-deep .mat-tab-label {
+    //Arguments - color, font-family, font-size, letter-spacing, line-height.
+    @include discovery-common-text(#0C2340, $OpenSansBold, 16px, 0, 24px);
+    text-align: center;
+}
+
+::ng-deep {
+    .station-select {
+        .dropdown-item.active {
+            background-color: #6244bb !important;
+        }
+    }
+}
+
+::ng-deep {
+    .modal-lg {
+        --bs-modal-width: 900px;
+    }
+}
+
+.btn-background:disabled {
+    border-radius: 4px;
+    border: 1.5px solid #666666;
+    @include discovery-common-text($OpenSansSemiBold);
+    font-size: 16px;
+    letter-spacing: 0;
+    line-height: 24px;
+    height: 36px;
+    width: 120px;
+}
+
+.btn-background {
+    border-radius: 4px;
+    border: 1.5px solid #666666;
+    @include discovery-common-text($OpenSansSemiBold);
+    font-size: 16px;
+    letter-spacing: 0;
+    line-height: 24px;
+    height: 36px;
+    width: 120px;
+}
+
+.btn-background-load {
+    border-radius: 4px;
+    border: 1.5px solid $atlantic;
+    @include discovery-common-text($OpenSansSemiBold);
+    color: $atlantic;
+    font-size: 16px;
+    letter-spacing: 0;
+    line-height: 24px;
+    height: 36px;
+    width: 120px;
+    cursor: pointer;
+}
+
+.btn-background-load:hover {
+    background-color: $atlantic;
+    color: #fff;
+}
+
+.btn-box {
+    margin-top: 219px;
+}
+
+.no-flight-text {
+    margin-bottom: 25px;
+    color: #0C2340;
+}
+
+.btn-text {
+    text-align: center;
+}
+
+.btn-default {
+    @include discovery-common-text($white, $OpenSansSemiBold, 16px, 0, 24px);
+    height: 40px;
+    border-radius: 4px;
+    background-color: $atlantic;
+    font-weight: 600;
+    text-align: center;
+    width: 130px;
+    margin-bottom: 10rem;
+    margin-right: -11px
+}
+
+.update-btn {
+    //Arguments - color, font-family, font-size, letter-spacing, line-height.
+    @include discovery-common-text($white, $OpenSansSemiBold, 16px, 0, 24px);
+    height: 40px;
+    border-radius: 4px;
+    background-color: $atlantic;
+    font-weight: 600;
+    text-align: center;
+    width: 130px;
+    margin-bottom: 10rem;
+    margin-right: -11px
+}
+
+.pax-not-boarded {
+    width: 8%;
+}
+
+.assigned-flight {
+    margin-top: -8px;
+}
+
+.etd {
+    text-align: center;
+}
+
+.table {
+    margin-top: 0px;
+    margin-bottom: 0px !important;
+}
+
+.main-table-header-lookup {
+    height: 70px;
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    background-color: $brand-color;
+    position: sticky;
+    top: 0px;
+    z-index: 1;
+
+    th {
+        //Arguments - color, font-family, font-size, letter-spacing, line-height.
+        @include discovery-common-text($white, $OpenSansSemiBold, 1vw, 0, 20px);
+        padding-bottom: 0px;
+        background-color: $brand-color;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    th:first-child {
+        border-radius: 4px 0 0 4px;
+    }
+
+    th:last-child {
+        border-radius: 0 4px 4px 0;
+    }
+}
+
+.flight-details-content {
+    padding: 0 3.33%;
+}
+
+.btn-content {
+    padding: 50px 0px 30px;
+}
+
+.flight-number {
+    cursor: pointer;
+    position: relative;
+    text-align: center;
+    width: 6%;
+}
+
+.bags-scanned-on {
+    width: 8%;
+}
+
+.bags-scanned {
+    padding: 0px 0px 0px 0px !important;
+    vertical-align: middle;
+    width: 17%;
+}
+
+.content-value-width {
+    min-width: 20px;
+    width: auto;
+}
+
+.bg_badge {
+    color: #0C2340;
+    height: 24px;
+    width: 80px;
+    border-radius: 12px;
+    font-family: OpenSansBold;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0;
+    line-height: 18px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.delete-tag-text {
+    box-sizing: border-box;
+    border: 1px solid #ffffff;
+    font-weight: 600;
+    visibility: hidden;
+    background-color: $brand-color;
+    text-align: center;
+    padding: 10px 5px;
+    border-radius: 4px;
+    position: absolute;
+    z-index: 1;
+    color: white;
+    font-family: "Open Sans", sans-serif;
+    font-size: 13px;
+    letter-spacing: 0;
+    line-height: 16px;
+    margin-top: -35px;
+    height: 35px;
+    width: 90px;
+}
+
+.delete-tag:hover .delete-tag-text {
+    top: auto;
+    visibility: visible;
+    text-align: left;
+}
+
+.icons-delete {
+    background-image: url($deleteIconPlus);
+    width: 16px !important;
+    height: 16px !important;
+    margin-left: 5px;
+    margin-right: -2px;
+    margin-bottom: -2px;
+    display: inline-block;
+}

@@ -1,0 +1,259 @@
+
+<div class="bags-summarization">
+    <div class="row">
+        <div class="col-md-5 col-lg-5 col-xl-5 left-content flight-back align-items-center">
+            <div class="long-arrow-left" (click)="backClick()"></div>
+            <div class="back-flight-label"> Flights | {{currentTab}}</div> &nbsp; &nbsp; &nbsp;
+            <div class="form-group d-flex col-md-5 col-lg-5 col-xl-5 align-items-center dropdown-width">
+                <label class="me-2">Flight</label>
+                <app-custom-select-dropdown [options]="flightKeyOption" [selectedValue]="selectedFlightKey"
+                    class="form-control dropdown-box" (selectedOption)="onFlightSelected($event)">
+                </app-custom-select-dropdown>
+            </div>
+        </div>
+        <div class="col-md-7 col-lg-7 col-xl-7 right-content-col  flight-back align-items-center"
+            *ngIf="baggageDetails">
+            <div class="right-content">
+                <div class="status">
+                    <span class="badge badge-fill bg_badge" [ngClass]="{
+                                        'status-ontime ': baggageDetails.status === 'ON-TIME' || baggageDetails.status === 'OUT',
+                                        'status-delayed': baggageDetails.status === 'DELAYED' || baggageDetails.status === 'CNCLD'
+                                        }">
+                        {{baggageDetails.status}}
+                    </span>
+                </div>
+
+                <div class="d-flex  align-items-baseline">
+                    <span class="small-text">Boarding start:</span> &nbsp;
+                    <span class="content-value">{{baggageDetails.boardingStartTime}}</span>
+                </div>
+
+                <div class="d-flex  align-items-baseline">
+                    <span class="small-text">ETD:</span> &nbsp;
+                    <span class="content-value">{{baggageDetails.localEstimatedDepartureDate | ppbmDate :"hourMinute"}}
+                        {{ baggageDetails.localEstimatedDepartureDate | ppbmDate : "diff" }}</span>
+                </div>
+
+                <div class="d-flex align-items-baseline">
+                    <span class="small-text">GATE:</span> &nbsp;
+                    <span class="content-value">{{ baggageDetails.departureGate}}</span>
+                </div>
+
+                <div class="d-flex  align-items-baseline">
+                    <span class="small-text">Acft type:</span> &nbsp;
+                    <span class="content-value">{{ baggageDetails.acftType}}</span>
+                </div>
+
+                <div class="d-flex  align-items-baseline">
+                    <span class="small-text">% bags scan on:</span> &nbsp;
+                    <span class="content-value content-value-width">{{ baggageDetails.bagScannedOn}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="btn-group btn-group-justified">
+        <ng-container *ngFor="let badge of badges">
+            <button type="button" class="btn btn-secondary" [class.active]="badge.badgeKey === activeBag"
+                (click)="onBadgeChange(badge.badgeKey, badge.badgeName, badge.badgeCount)"
+                [disabled]="badge.badgeCount == 0">
+                {{badge.badgeName}}: {{badge.badgeCount}}
+            </button>
+        </ng-container>
+    </div>
+
+
+</div>
+<div *ngIf="!isMobileScreen">
+    <div class="container-fluid flight-details-content table-scroll">
+        <div class="container-fluid sub-header content header-mb">
+            <div class="row header-bags">
+                <div class="bags-number">
+                    {{activeBadgeName}} ({{activeBagCount}}) | {{activeBagCount === 0 ? '' :
+                    carrierCode + flightNumber + '-' + date + ', ' + startRoute + ' -' + endRoute}}
+                </div>
+            </div>
+        </div>
+        <div class="refresh-time refresh-ml">
+            <app-ppbm-refresh></app-ppbm-refresh>
+        </div>
+        <div class="d-flex justify-content-end btn-buttons">
+            <span class="edit-flight-btn">
+                <button [disabled]="count === 0"
+                    [ngClass]="btnAddNote ? 'btn-background-load btn-hold' : 'btn-background btn-hold'"
+                    (click)="openAddNoteHoldLoadModal('Add Note', '')">Add
+                    note</button>
+                <button [disabled]="count === 0"
+                    [ngClass]="btnLoad ? 'btn-background-load btn-hold' : 'btn-background btn-hold'"
+                    (click)="openAddNoteHoldLoadModal('Load', '')">Load</button>
+                <button [disabled]="count === 0"
+                    [ngClass]="btnHold ? 'btn-background-load btn-hold' : 'btn-background btn-hold'"
+                    (click)="openAddNoteHoldLoadModal('Hold', '')">Hold</button>
+            </span>
+        </div>
+        <div class="container-fluid main-table table-align" *ngIf="displayBagContent">
+            <table class="table">
+                <thead class="main-table-header-lookup">
+                    <tr>
+                        <th></th>
+                        <th *ngFor="let tableHeader of tableHeaders" [class]="tableHeader.className"
+                            [attr.data-order]="tableHeader.sort" [attr.data-name]="tableHeader.key"
+                            [appSort]="baggageDetailsList" [attr.data-displayValue]="tableHeader.displayValue"
+                            [attr.data-className]="tableHeader.className"
+                            [attr.data-previousSortOrder]="baggageDetailsData" [ngClass]="{
+                    'pnr-header': tableHeader.className == 'pnr',
+                    'last-scan-time': tableHeader.className == 'last-scan-time',
+                    'pax-name': tableHeader.className == 'pax-name',
+                    'bag-conx-time': tableHeader.className == 'bag-conx-time',
+                    'pax-conx-time': tableHeader.className == 'pax-conx-time',
+                    'load-status': tableHeader.className == 'load-status',
+                    'awaiting-seat': tableHeader.className == 'awaiting-seat',
+                    'pb-on': tableHeader.className == 'pb-on',
+                    'last-status': tableHeader.className == 'last-status',
+                    'bag-tag-number': tableHeader.className == 'bag-tag-number',
+                    'type-col': tableHeader.className == 'type'
+                  }">
+                            <span [ngClass]="{
+                    'bags-status-caret': tableHeader.className == 'bags-status',
+                    'status-header': tableHeader.className == 'status',
+                    'bags-scanned-on-caret':tableHeader.className == 'bags-scanned-on',
+                    'bags-scanned-caret': tableHeader.className == 'bags-scanned',
+                    'conx-bags-caret': tableHeader.className == 'conx-bags',
+                    'dept-gate-caret': tableHeader.className == 'dept-gate',
+                    'bag-tag-number-caret':tableHeader.className == 'bag-tag-number',
+                      'type-caret':tableHeader.className == 'type',
+                      'bag-conx-time-caret': tableHeader.className == 'bag-conx-time',
+                      'pax-conx-time-caret': tableHeader.className == 'pax-conx-time',
+                      'load-status-caret': tableHeader.className == 'load-status',
+                      'last-status-caret': tableHeader.className == 'last-status',
+                      'last-scan-time-caret': tableHeader.className == 'last-scan-time',
+                      'pax-name-caret': tableHeader.className == 'pax-name',
+                      'pnr-caret': tableHeader.className == 'pnr',
+                      'awaiting-seat-caret': tableHeader.className == 'awaiting-seat',
+                      'pb-on-caret': tableHeader.className == 'pb-on'
+                  }">
+                                {{ tableHeader.displayValue }}
+                            </span>
+                            <br class="br-class" />
+                            <i class="caret-up hide-element"></i>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="main-table-body flight-fliter-results">
+                    <ng-container *ngFor="let bag of baggageDetailsList">
+                        <ng-container>
+                            <tr class="main-table-details"
+                                [ngClass]="{'active-row': (currentBagDetail?.bagTagNumber === bag.bagTagNumber) && isBaggedDetailDialogOpened}">
+                                <td class="flight-number-checkbox">
+                                    <input type="checkbox" class="checkedBag" [(ngModel)]="bag.isChecked"
+                                        (ngModelChange)="confirmationCheck($event)">
+                                </td>
+                                <td class="pbon">
+                                    <i class="small-green-pax-icon-20"
+                                        *ngIf="bag?.isPassengerBoarded && bag?.isPassengerExpected"></i>
+                                    <i class="small-red-pax-icon-20"
+                                        *ngIf="!bag?.isPassengerBoarded && bag?.isPassengerExpected"></i>
+                                    <i class="small-grey-pax-icon-20"
+                                        *ngIf="!bag?.isPassengerBoarded && !bag?.isPassengerExpected"></i>
+                                    &nbsp;
+                                    <i class="small-green-bag-icon-20" *ngIf="bag?.isDepartureScan"></i>
+                                    <i class="small-red-bag-icon-20" *ngIf="!bag?.isDepartureScan"></i>                                 
+                                </td>
+                                <td class="bag-tag-number" (click)="openBagdetail(bag)">
+                                    <span class="bag-underline">{{ bag.bagTagNumber ? bag.bagTagNumber :
+                                        noDataText}}</span>
+                                    <span class="delete-tag" *ngIf="bag.isDeleted">
+                                        <span class="icons-delete"></span>
+                                        <span class="delete-tag-text">Deleted tag</span>
+                                    </span>
+                                </td>
+                                <td class="bags-status">
+                                    <!-- Commenting out missing bag alert icon which is not applicable -->
+                                    <!-- <i *ngIf="bag?.isMissingBag" class="missing-bag-orange-20 mr-4"></i> -->
+                                    <i *ngIf="bag?.isNoNameBag" class="no-name-bag-orange-20 mr-4"></i>
+                                    <!-- <i *ngIf="bag?.isConnectionSaverBag" class="connection-saver-orange-20 mr-4"></i> -->
+                                    <i *ngIf="bag?.isRush" class="rush-red-20 mr-4"></i>
+                                    <i *ngIf="bag?.isReroute" class="reroute-blue-20 mr-4"></i>
+                                </td>
+                                <td>
+                                    <span>{{ bag.type ? bag.type : noDataText }}</span>
+                                </td>
+                                <td class="bag-conx-time">-</td>
+                                <td class="pax-conx-time">-</td>
+                                <td class="notes-col">
+                                    <span (click)="openAddNoteHoldLoadModal('View Note', bag)"
+                                        [ngClass]="bag.isLoadHoldNote ? 'notes-icon': ''"></span>
+                                </td>
+                                <td class="load-status-tooltip conx-bags">
+                                    <div class="load-status-tool-tip">{{bag.loadStatus ? bag.loadStatus : noDataText}}
+                                        <div class="tooltip-display"
+                                            *ngIf="bag.loadStatus != '' && bag.loadStatus != 'PENDING'">
+                                            <div class="container">
+                                                <div class="row">
+                                                    <div class="d-flex justify-content-between update-type"
+                                                        style="text-align: left;">
+                                                        <div class="col-6">Update type<br>
+                                                            <span class="hold-text">{{bag.csrAuthorization ?
+                                                                bag.csrAuthorization.loadStatus : noDataText}}</span>
+                                                        </div>
+                                                        <div class="col-6 hold-reason-text">Hold of reason<br>
+                                                            <span class="short-connect-text">{{bag.csrAuthorization ?
+                                                                bag.csrAuthorization.reasonCode : noDataText}}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="d-flex justify-content-between"
+                                                        style="text-align: left;">
+                                                        <div class="col-6 update-by-text">Updated by<br>
+                                                            <span class="name-text">{{bag.csrAuthorization ?
+                                                                bag.csrAuthorization.firstName :
+                                                                noDataText}},</span><br>
+                                                            <span class="name-text">{{bag.csrAuthorization ?
+                                                                bag.csrAuthorization.lastName : noDataText}}</span>
+                                                        </div>
+                                                        <div class="col-6 update-time-text">Update date/time<br>
+                                                            <span class="date-text">{{
+                                                                bag?.csrAuthorization?.updatedTime
+                                                                | date : 'MM/dd HH:mm' }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="bags-scanned">
+                                    <div> {{bag.lastStatus ? bag.lastStatus : noDataText}}</div>
+                                </td>
+                                <td class="status-time">
+                                    <span>{{bag.statusTime}}</span>
+                                </td>
+                                <td class="customer-name">
+                                    <span class="customer-name-tool-tip">{{ bag.fullName? bag.fullName.slice(0,20):
+                                        noDataText}}
+                                        <span>{{ bag.fullName? bag.fullName: noDataText}}</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="pnr-icon">
+                                        <i class="gt-gs-icon-20 mr-4" *ngIf="bag?.groupTier==='GLOBAL_SERVICES'"></i>
+                                        <i class="gt-1k-icon-20 mr-4" *ngIf="bag?.groupTier==='PREMIER_1K'"></i>
+                                        <i class="gt-gold-icon-20 mr-4" *ngIf="bag?.groupTier==='PREMIER_GOLD'"></i>
+                                        <i class="gt-platinum-icon-20 mr-4"
+                                            *ngIf="bag?.groupTier==='PREMIER_PLATINUM'"></i>
+                                        <i class="gt-silver-icon-20 mr-4" *ngIf="bag?.groupTier==='PREMIER_SILVER'"></i>
+                                    </span>
+                                    <span>{{bag.pnr ? bag.pnr : noDataText}}</span>
+                                </td>
+                                <td class="passenger-status">
+                                    {{bag.paxStatusAndSeat ? bag.paxStatusAndSeat : noDataText}}
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </ng-container>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
