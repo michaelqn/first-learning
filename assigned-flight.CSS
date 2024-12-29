@@ -1,0 +1,987 @@
+
+@import "src/styles/ppbm/abstracts/variables";
+@import "src/styles/ppbm/abstracts/mixins";
+@import "src/styles/ppbm/base/fonts";
+@import "src/styles/ppbm/pages/home";
+@import "src/styles/ppbm/components/table";
+@import 'src/styles/color.scss';
+@import 'src/styles/datepicker-calendar.scss';
+
+.date-align {
+    margin-right: 5px !important;
+    font-size: 17px !important;
+    line-height: 24px !important;
+    color: #2b2929 !important;
+    font-family: OpenSansRegular !important;
+    font-weight: 500;
+}
+
+.theme-green .bs-datepicker-head {
+    background-color: #fff;
+}
+
+.flight-header {
+    float: left;
+}
+
+.calendar-datepicker {
+    float: right;
+    margin-right: 5px;
+}
+
+.status-width {
+    width: 8%;
+}
+
+.table-without-data {
+    border-collapse: collapse;
+    padding: 0px;
+    overflow-x: auto;
+    text-align: right;
+    background-color: white;
+
+    height: 546px;
+
+    .main-table-header {
+        height: 70px;
+        width: 100%;
+        border-radius: 4px 4px 0 0;
+        background-color: $brand-color;
+        position: sticky;
+        top: 0px;
+        z-index: 1;
+
+        th {
+            //Arguments - color, font-family, font-size, letter-spacing, line-height.
+            @include discovery-common-text($white, $OpenSansSemiBold, 1vw, 0, 20px);
+            padding-bottom: 0px;
+            background-color: $brand-color;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        th:first-child {
+            border-radius: 4px 0 0 4px;
+        }
+
+        th:last-child {
+            border-radius: 0 4px 4px 0;
+        }
+    }
+
+    .main-table-body {
+
+        // white-space: nowrap;
+        .main-table-sub-header {
+            height: 48px;
+            border-bottom: 1px solid $row-border-color;
+
+            td {
+                padding: 12px 0px;
+            }
+
+            .header-title {
+                color: #666666;
+                font-weight: 600;
+                margin-right: 22px;
+                font-size: 14px;
+            }
+
+            .text-link-enabled {
+                color: #6244BB;
+                font-weight: 600;
+                font-size: 14px;
+            }
+        }
+
+        .main-table-details {
+            height: 56px;
+            width: 100%;
+            color: #000000;
+            background-color: $white;
+            border-color: $row-border-color;
+
+            td {
+                height: 24px;
+                font-size: 1vw;
+                letter-spacing: 0;
+                line-height: 24px;
+                padding-top: 15px;
+                cursor: pointer;
+            }
+        }
+
+        .active-row {
+            background-color: #EAEAF3;
+        }
+
+        .flight-number {
+            text-align: center;
+            text-decoration: underline dotted $black;
+        }
+
+        .exceptions {
+            text-align: left;
+        }
+
+        .exceptions-icon {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .dept-gate,
+        .route,
+        .acft-type,
+        .acft-id,
+        .bag-status {
+            text-align: left;
+        }
+
+        .etd,
+        .sch,
+        .status {
+            text-align: center;
+        }
+
+        .pax-stby,
+        .pax-not-boarded {
+            text-align: right;
+        }
+
+        .bags-issued {
+            text-align: right;
+        }
+
+        .bags-loaded {
+            text-align: right;
+            font-weight: bold;
+            color: $green;
+        }
+
+        .bags-missing {
+            text-align: right;
+            font-weight: bold;
+            color: $dark-gray;
+        }
+
+        .pax-on {
+            text-align: right;
+            font-weight: bold;
+            color: $crimson;
+        }
+
+        .bag-tag {
+            text-decoration: underline;
+        }
+
+        .last-scan-by {
+            text-decoration: underline dotted $black;
+        }
+    }
+
+    .br-class {
+        display: block;
+        margin: -8px 0;
+        content: " ";
+    }
+
+    @-moz-document url-prefix() {
+        .br-class {
+            margin: -4px 0;
+        }
+    }
+}
+
+.dest-header~.caret-up {
+    margin-left: 10px;
+}
+
+.dest-header~.caret-down {
+    margin-left: 10px;
+}
+
+.status-header~.caret-up {
+    margin-right: 38px;
+}
+
+.status-header~.caret-down {
+    margin-right: 38px;
+}
+
+.status-header {
+    margin-right: 25px;
+}
+
+.bags-issued-caret~.caret-up {
+    margin-right: 16px;
+}
+
+.bags-issued-caret~.caret-down {
+    margin-right: 16px;
+}
+
+.bags-not-scanned-caret~.caret-up {
+    margin-right: 22px;
+}
+
+.bags-not-scanned-caret~.caret-down {
+    margin-right: 22px;
+}
+
+.pax-not-boarded-caret~.caret-up {
+    margin-right: 38px;
+}
+
+.pax-not-boarded-caret~.caret-down {
+    margin-right: 38px;
+}
+
+.unknown-pax-stat-caret~.caret-up {
+    margin-right: 23px;
+}
+
+.unknown-pax-stat-caret~.caret-down {
+    margin-right: 23px;
+}
+
+.attempted-scan-caret~.caret-up {
+    margin-right: 33px;
+}
+
+.attempted-scan-caret~.caret-down {
+    margin-right: 33px;
+}
+
+.need-to-offload~.caret-up {
+    margin-right: 20px;
+}
+
+.need-to-offload~.caret-down {
+    margin-right: 20px;
+}
+
+.auto-heldoff-caret~.caret-up {
+    margin-right: 16px;
+}
+
+.auto-heldoff-caret~.caret-down {
+    margin-right: 16px;
+}
+
+.csr-heldoff-caret~.caret-up {
+    margin-right: 15px;
+}
+
+.csr-heldoff-caret~.caret-down {
+    margin-right: 15px;
+}
+
+.bags-scanned-on-caret~.caret-up {
+    margin-right: 32px;
+}
+
+.bags-scanned-on-caret~.caret-down {
+    margin-right: 32px;
+}
+
+.bags-scanned-caret~.caret-up {
+    margin-right: 22px;
+}
+
+.bags-scanned-caret~.caret-down {
+    margin-right: 22px;
+}
+
+.conx-bags-caret~.caret-up {
+    margin-right: 11px;
+}
+
+.conx-bags-caret~.caret-down {
+    margin-right: 11px;
+}
+
+.dept-gate-caret~.caret-up {
+    margin-right: 9px;
+}
+
+.dept-gate-caret~.caret-down {
+    margin-right: 9px;
+}
+
+.flight-number-caret~.caret-up {
+    margin-right: 6px;
+}
+
+.flight-number-caret~.caret-down {
+    margin-right: 6px;
+}
+
+.dest-caret-up {
+    display: inline-block;
+    height: 10px;
+    width: 16px;
+    background-image: url($caretUp);
+    text-align: center;
+    margin-left: 10px;
+}
+
+#flex-container {
+    display: flex;
+    justify-content: center;
+}
+
+.flight-details-content {
+    padding: 0 3.33%;
+}
+
+.conx-bags .status .dept-gate {
+    text-align: right;
+}
+
+.dest {
+    text-align: left;
+}
+
+.main-table-details {
+    text-align: right !important;
+}
+
+.edit-flight-btn {
+    text-align: right;
+    margin-top: -30px;
+    padding: 0px;
+}
+
+.plus-icon {
+    cursor: pointer;
+    display: block;
+    content: url($plusIcon);
+    margin-left: 12px;
+    position: absolute;
+    margin-top: 7px;
+}
+
+.edit-btn {
+    @include discovery-common-text($white, $OpenSansSemiBold, 16px, 0, 24px);
+    height: 38px;
+    border-radius: 4px;
+    background-color: $atlantic;
+    font-weight: 600;
+    text-align: center;
+    width: 127px;
+    margin-bottom: 1rem;
+    margin-right: -11px
+}
+
+.tab-label {
+    //Arguments - color, font-family, font-size, letter-spacing, line-height.
+    @include discovery-common-text(#0C2340, $OpenSansSemiBold, 16px, 0, 24px);
+    text-align: center;
+    font-weight: bold;
+}
+
+::ng-deep .mat-tab-list .mat-tab-labels .mat-tab-label-active {
+    color: #0c2340;
+    font-weight: bolder;
+    opacity: 1;
+}
+
+::ng-deep .mat-ink-bar {
+    background-color: #0c2340;
+    border-bottom: 4px solid #0c2340;
+}
+
+::ng-deep .mat-tab-label {
+    //Arguments - color, font-family, font-size, letter-spacing, line-height.
+    @include discovery-common-text(#0C2340, $OpenSansBold, 16px, 0, 24px);
+    padding: 0 !important;
+    margin: 0 12px;
+    text-align: center;
+
+    .mat-tab-label-content {
+        width: 100%;
+
+        span {
+            width: 100%;
+        }
+    }
+}
+
+::ng-deep {
+    .station-select {
+        .dropdown-item.active {
+            background-color: #6244bb !important;
+        }
+    }
+}
+
+.btn-background {
+    border-radius: 4px;
+    border: 1.5px solid #666666;
+    @include discovery-common-text($OpenSansSemiBold);
+    font-size: 16px;
+    letter-spacing: 0;
+    line-height: 24px;
+    height: 36px;
+    width: 120px;
+}
+
+.btn-box {
+    margin-top: 219px;
+}
+
+.no-flight-text {
+    @include discovery-common-text($brand-color, $OpenSansRegular, 1.6vw, 0, 24px);
+    margin-bottom: 25px;
+    color: #0C2340;
+}
+
+.btn-text {
+    text-align: center;
+}
+
+.add-flight-label {
+    margin-right: 10px;
+}
+
+.update-btn {
+    //Arguments - color, font-family, font-size, letter-spacing, line-height.
+    @include discovery-common-text($white, $OpenSansSemiBold, 16px, 0, 24px);
+    height: 40px;
+    border-radius: 4px;
+    background-color: $atlantic;
+    font-weight: 600;
+    text-align: right;
+    width: 130px;
+    margin-bottom: 10rem;
+}
+
+.pax-not-boarded {
+    width: 8%;
+}
+
+.assigned-flight {
+    margin-top: -8px;
+}
+
+.etd {
+    text-align: center;
+}
+
+.table {
+    margin-top: 0px;
+}
+
+.main-table-header {
+    background-color: #0c2340;
+    color: white;
+}
+
+.flight-details-content {
+    padding: 0 3.33%;
+}
+
+.btn-content {
+    padding: 50px 0px 30px;
+}
+
+.flight-number {
+    cursor: pointer;
+    position: relative;
+    text-align: center;
+    width: 6%;
+}
+
+.bags-scanned-on {
+    width: 8%;
+}
+
+/* Start CSS datepicker */
+.border-bottom {
+    border-bottom: 1px solid $darkBlue2 !important;
+}
+
+.border {
+    border: 1px solid $darkBlue2 !important;
+}
+
+.datepicker {
+    // color: $black90;
+
+    // font-size: 16px;
+    // font-size: calc(5px + 0.79vw);
+    // letter-spacing: 0;
+    // line-height: 24px;
+    display: inline-block;
+    font-size: 16px !important;
+    line-height: 24px !important;
+    color: #666666;
+    font-family: OpenSansRegular !important;
+    font-weight: 500 !important;
+
+    input.datepicker-calendar-icon {
+        height: 32px;
+        padding: 0 5px;
+    }
+}
+
+.last-updated-at[_ngcontent-vym-c31] {
+    display: inline-block;
+    color: #666666;
+    font-family: OpenSansRegular;
+}
+
+.calender-btn {
+    line-height: .4;
+    vertical-align: baseline;
+    color: $PpurpleHeart;
+}
+
+.cancel-menu {
+    font-size: calc(2px + .7vw);
+    width: 84px;
+    color: $white;
+    font-weight: bold;
+    text-align: center;
+    background: $crimson;
+    text-transform: uppercase;
+    line-height: 16px;
+}
+
+.mainMenu {
+    .mainMenuWrap {
+        z-index: 9;
+        width: 100%;
+
+        .icon-Down-arrow {
+            display: none;
+            position: absolute;
+            top: 9px;
+            right: 8px;
+            font-size: 11px;
+            color: $black70;
+            cursor: pointer;
+        }
+    }
+
+    .navbar-nav {
+        // display: table;
+        width: 100%;
+
+        // table-layout: fixed;
+        // border-bottom: solid 2px $linkBlue;
+        li.nav-item {
+            // display: table-cell;
+            vertical-align: top;
+
+            // border-right: solid 2px #fff;
+            &:last-child {
+                border-right: 0;
+            }
+
+            a.nav-link {
+                display: block;
+                padding: 0 15px 12px;
+                font-size: 16px;
+                font-size: calc(5px + 0.79vw);
+                line-height: 25px;
+                font-weight: 600;
+                color: #666666;
+                text-align: center;
+
+                span {
+                    font-size: 16px;
+                    font-size: calc(5px + 0.79vw);
+                    line-height: 20px;
+                    margin-right: 5px;
+                    position: relative;
+                    top: 3px;
+                    color: $black90;
+
+                    em {
+                        font-style: normal;
+                    }
+
+                    &.icon-clock,
+                    &.icon-cross,
+                    &.icon-tick-circle {
+                        font-size: 15px;
+                    }
+                }
+
+                .icon-dashboard:before {
+                    color: $black90;
+                }
+            }
+        }
+
+        li.nav-item:hover a,
+        li.nav-item.active a {
+            color: $darkBlue2;
+            // background-color: $linkBlue;
+            border-bottom: 4px solid $darkBlue2;
+
+            span {
+                color: $white;
+
+                &:before {
+                    color: $white;
+                }
+            }
+
+            .icon-dashboard:before {
+                color: $white;
+            }
+        }
+    }
+}
+
+.desktopMenu {
+    display: block;
+}
+
+.mobileMenu {
+    display: none;
+}
+
+@mixin hideInput {
+    width: 0;
+    height: 0;
+    position: absolute;
+    left: -9999px;
+}
+
+::ng-deep bs-datepicker-container.bottom.ng-tns-c46-17.ng-star-inserted {
+    left: -35px !important;
+    top: 0;
+    position: absolute !important;
+}
+
+::ng-deep bs-datepicker-container.bottom.ng-tns-c46-19.ng-star-inserted {
+    left: -35px !important;
+    top: 0;
+    position: absolute !important;
+}
+
+::ng-deep bs-datepicker-container.bottom.ng-tns-c46-21.ng-star-inserted {
+    left: -35px !important;
+    top: 0;
+    position: absolute !important;
+}
+
+::ng-deep bs-datepicker-container.bottom.ng-tns-c46-23.ng-star-inserted {
+    left: -35px !important;
+    top: 0;
+    position: absolute !important;
+}
+
+::ng-deep bs-datepicker-container.bottom.ng-tns-c46-25.ng-star-inserted {
+    left: -35px !important;
+    top: 0;
+    position: absolute !important;
+}
+
+@mixin breakpoint($point) {
+    @if $point==1100 {
+        @media (max-width: 1100px) {
+            @content ;
+        }
+    }
+
+    @else if $point==800 {
+        @media (max-width: 800px) {
+            @content ;
+        }
+    }
+}
+
+.for_all_tab {
+    .toggle {
+        input+label {
+            padding: 0.375rem !important;
+        }
+    }
+}
+
+.assignments {
+
+    /* TOGGLE STYLING */
+    .toggle {
+        box-sizing: border-box;
+        font-size: 0;
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: flex-end;
+        align-items: center;
+        background-color: $blackd9;
+        border-radius: 4px;
+
+        input {
+            @include hideInput;
+        }
+
+        input+label {
+            cursor: pointer;
+            margin: 1px;
+            padding: .5rem;
+            box-sizing: border-box;
+            position: relative;
+            display: inline-block;
+            // border: solid 1px $blackd9;
+            background-color: $blackd9;
+            font-size: 14px;
+            font-size: calc(5px + 0.79vw);
+            letter-spacing: 0;
+            color: $black90;
+            line-height: 140%;
+            text-align: center;
+            transition: border-color .15s ease-out, color .25s ease-out, background-color .15s ease-out, box-shadow .15s ease-out;
+
+            /* ADD THESE PROPERTIES TO SWITCH FROM AUTO WIDTH TO FULL WIDTH */
+            /*flex: 0 0 50%; display: flex; justify-content: center; align-items: center;*/
+            /* ----- */
+            &:first-of-type {
+                border-radius: 4px 0 0 4px;
+                border-right: none;
+            }
+
+            &:last-of-type {
+                border-radius: 0 4px 4px 0;
+                border-left: none;
+            }
+        }
+
+        input:checked+label {
+            background-color: $darkBlue2;
+            color: $white;
+            z-index: 1;
+            font-weight: 600;
+            border-radius: 4px;
+
+            &:first-of-type {
+                border-radius: 4px;
+                border-right: none;
+            }
+
+            &:last-of-type {
+                border-radius: 4px;
+                border-left: none;
+            }
+        }
+
+        @include breakpoint(800) {
+            input+label {
+                padding: .75rem .25rem;
+                flex: 0 0 50%;
+                display: flex;
+                font-size: 13px;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+    }
+}
+
+.search_box.border-bottom {
+    border-bottom: 1px solid $black50 !important;
+}
+
+.search_box {
+    .flight_box {
+        p {
+            font-size: 14px;
+        }
+    }
+}
+
+// Start of 1199px to 992px
+@media screen and (max-width:1199px) and (min-width:992px) {
+    .mainMenu {
+        .navbar-nav {
+            li.nav-item {
+                a.nav-link {
+                    // padding-right: 30px;
+                    font-size: 12px;
+                    line-height: 16px;
+                }
+            }
+        }
+    }
+
+    .filterPan {
+        font-size: 12px;
+        line-height: 15px;
+
+        .icon-Filter {
+            font-size: 15px;
+        }
+    }
+}
+
+// End of 1199px to 992px
+// Start of 991px to 768px
+@media screen and (max-width:991px) and (min-width:768px) {
+    .mainMenu {
+        .navbar-nav {
+            li.nav-item {
+                a.nav-link {
+                    padding-top: 7px;
+                    padding-right: 20px;
+                    font-size: 12px;
+                    line-height: 15px;
+                    min-height: 36px;
+
+                    span {
+                        font-size: 15px;
+                        line-height: 18px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// End of 991px to 768px
+// Start of 767px to 300px
+@media screen and (max-width:767px) and (min-width:300px) {
+    .mainMenu {
+        .mainMenuWrap {
+            /* border-bottom: 0;
+            width: 150px;
+            height: 30px;
+            border: solid 1px $black30;
+            border-radius: 5px;
+            display: inline-block;
+            padding: 5px 10px;
+            position: relative;*/
+            font-size: 11px;
+            line-height: 16px;
+
+            .icon-Down-arrow {
+                display: block;
+            }
+        }
+
+        .navbar-nav {
+
+            /*flex-direction: column;
+            position: absolute;
+            top: 28px;
+            left: 1px;
+            display: none;
+            z-index: 99;
+            width: 99%;
+            background: $white;
+            border: solid 1px $black30;
+            border-radius: 0 0 5px 5px;*/
+            li.nav-item {
+                margin-right: 0;
+
+                a.nav-link {
+                    font-size: 14px;
+                    line-height: 16px;
+                    /*  min-height: 10px;
+                    background: $white;*/
+                    padding: 5px 9px;
+                    display: block;
+
+                    /*border-bottom: solid 1px $black30;*/
+                    span {
+                        font-size: 12px;
+                        top: 0;
+                        color: $black;
+                    }
+
+                    .icon-Hold-Off .path1:before {
+                        color: $black;
+                    }
+                }
+
+                /* &:last-child {
+                    a.nav-link {
+                        border-bottom: 0;
+                         border-radius: 0 0 5px 5px;
+                    }
+                }*/
+            }
+
+            li.nav-item:hover a,
+            li.nav-item.active a {
+                /*  color: $white;
+                background: $linkBlue;*/
+                border-bottom: 2px solid #0C2340;
+
+                span {
+                    color: $white;
+                }
+
+                .icon-Hold-Off .path1:before {
+                    color: $black;
+                }
+
+                .icon-Hold-Off .path2:before {
+                    color: $white;
+                }
+
+                .icon-Hold-Off .path3:before {
+                    color: $white;
+                }
+            }
+        }
+    }
+
+    .desktopMenu {
+        display: none;
+    }
+
+    .mobileMenu {
+        display: block;
+    }
+
+    .search_box.mob-no-border {
+        border-bottom-color: transparent !important;
+    }
+
+    .assignments .toggle input+label {
+        flex: 0 0 49.5%;
+    }
+}
+
+// End of 767px to 350px
+.option-highlight {
+    background-color: #6244bb;
+    color: #fff;
+    position: relative;
+}
+
+.option-highlight:after {
+    content: '\e94b';
+    font-family: 'united-reroute' !important;
+    position: absolute;
+    right: 5px;
+    top: 11px;
+}
+
+.option-highlight::after {
+    position: absolute;
+    right: .6rem;
+    content: "\2713";
+    font-weight: 600;
+}
+
+.fa-calendar:before {
+    content: "\f073"
+}
+
+.fa {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale
+}
+
+
+
+

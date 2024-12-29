@@ -1,0 +1,264 @@
+
+<div>
+    <div class="container-fluid flight-details-content table-scroll">
+        <div class="container-fluid sub-header content">
+            <div class="row">
+                <div class="col-md-12 col-lg-12 col-xl-12 left-content">
+                    <div class="flight-header">
+                        <span *ngIf="!closedFlightTab">
+                            {{ todayDate | date : "LLLL dd, yyyy" }} |
+                            {{ closedFlightTab ? "Closed" : "Assigned" && allFlightsTab ? "All" : "Assigned" }} flights
+                        </span>
+                        <span *ngIf="closedFlightTab">
+                            {{ selectedDate | date : "LLLL dd, yyyy" }} |
+                            {{ closedFlightTab ? "Closed" : "Assigned" }} flights
+                        </span>
+                    </div>
+                    <!--datepicker-->
+                    <div *ngIf="closedFlightTab" class="
+                     calendar-datepicker
+                     datepicker
+                     align-self-start
+                     d-lg-flex
+                     flex-row
+                     justify-content-start
+                     align-content-center
+                     d-none d-lg-block
+                   ">
+                        <p class="m-0 align-self-center mr-2 date-align">Date</p>
+                        <div class="
+                       rounded
+                       rush_alert
+                       border
+                       bg-white
+                       align-self-center
+                       datepicker_box
+                       position-relative
+                     ">
+                            <div class="input-group w-100" (click)="showDatePicker(dpp, dpc)">
+                                <input type="text" class="border-0 px-1 rounded" readonly placeholder="MMM DD, YYYY"
+                                    value="{{
+                           selectedDateVal
+                             ? selectedDateVal
+                             : (selectedDate | date: 'MMM dd, yyyy')
+                         }}" />
+                                <button class="
+                           btn
+                           calender-btn
+                           button
+                           border-left
+                           rounded-0
+                           list-inline
+                           p-1
+                           pl-2
+                           my-1
+                         " type="button">
+                                    <i class="fa fa-calendar"></i>
+                                </button>
+                            </div>
+                            <div class="custom-content">
+                                <div class="row position-relative">
+                                    <a class="position-absolute top-10 right-10 darkBlue2" href="javascript:void(0);"
+                                        style="display: none"><span class="material-icons"> close </span></a>
+                                    <!-- Left calender on browser -->
+                                    <div class="col-xs-6 col-12 col-md-6 form-group">
+                                        <div class='left-calendar' href="javascript:void(0);"
+                                            (bsValueChange)="onValueChange($event, dpp, dpc, 'left-calendar')"
+                                            placeholder="Datepicker" bsDatepicker [minDate]="minPDate"
+                                            [maxDate]="maxPDate" [bsValue]="data" #dpp="bsDatepicker"
+                                            [datesDisabled]="disabledDates" [bsConfig]="{
+                               displayOneMonthRange: true,
+                               showWeekNumbers: false
+                             }">
+                                        </div>
+                                    </div>
+                                    <!-- Right calender on browser -->
+                                    <div class="col-xs-6 col-12 col-md-6 form-group">
+                                        <div class='right-calendar' href="javascript:void(0);" #dpc="bsDatepicker"
+                                            [minDate]="minCDate" [maxDate]="maxCDate" [bsValue]="data" [bsConfig]="{
+                               displayOneMonthRange: true,
+                               showWeekNumbers: false
+                             }" bsDatepicker (bsValueChange)="onValueChange($event, dpp, dpc,'right-calendar')"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--datepicker end-->
+                </div>
+                <span class="edit-flight-btn">
+                    <button *ngIf="!closedFlightTab && !allFlightsTab" [disabled]="flightDetailsData.length == 0"
+                        [ngStyle]="{
+              'background-color':
+                flightDetailsData.length == 0 ? '#E6E6E6' : '#6244bb'
+            }" class="btn-background" (click)="openAddFlightsModal()">
+                        <span class="btn-text" [ngStyle]="{
+                color: flightDetailsData.length == 0 ? '#666666' : '#ffffff'
+              }">Edit flights</span>
+                    </button>
+                </span>
+            </div>
+        </div>
+
+        <div class="row assigned-flight">
+            <mat-tab-group class="tab-label col-6" [selectedIndex]="selectedTabIndex"
+                (selectedTabChange)="onSelectedTabChanged($event)">
+                <mat-tab label="Assigned">
+                    <ng-template mat-tab-label>
+                        <span>
+                            Assigned {{flightDetailsData?.length > 0 ?'('+flightDetailsData?.length+')': ''}}
+                        </span>
+                    </ng-template>
+                </mat-tab>
+                <mat-tab label="All">
+                    <ng-template mat-tab-label>
+                        <span>All
+                            {{allFLightsLength?'('+allFLightsLength+')':allFLightsLength}}</span>
+                    </ng-template>
+                </mat-tab>
+                <mat-tab label="Closed">
+                    <ng-template mat-tab-label>
+                        <span>Closed
+                            {{closedFlightArray?'('+closedFlightArray+')':closedFlightArray}}</span>
+                    </ng-template>
+                </mat-tab>
+            </mat-tab-group>
+            <app-ppbm-refresh class="col-6"></app-ppbm-refresh>
+        </div>
+        <!-- <ng-container>
+            <div *ngIf="loading && flightDetailsData.length == 0">
+                <app-ppbm-loader></app-ppbm-loader>
+            </div>
+        </ng-container> -->
+        <div *ngIf="!isMobileScreen && !closedFlightTab && !allFlightsTab" class="container-fluid" [ngClass]="
+        flightDetailsData.length == 0 ? 'table-without-data' : 'main-table'
+      ">
+            <table class="table">
+                <thead class="main-table-header">
+                    <tr>
+                        <th></th>
+                        <th *ngFor="let tableHeader of tableHeaders" [class]="tableHeader.className"
+                            [appSort]="flightDetailsData" [attr.data-order]="tableHeader.sort"
+                            [attr.data-name]="tableHeader.key" [attr.data-displayValue]="tableHeader.displayValue"
+                            [attr.data-className]="tableHeader.className"
+                            [attr.data-previousSortOrder]="'previousSortOrderBDT'">
+                            <span [ngClass]="{
+                  'dest-header': tableHeader.className == 'dest',
+                  'status-header': tableHeader.className == 'status',
+                  'bags-issued-caret': tableHeader.className == 'bags-issued',
+                  'bags-not-scanned-caret':
+                    tableHeader.className == 'bags-not-scanned',
+                  'pax-not-boarded-caret':
+                    tableHeader.className == 'pax-not-boarded',
+                  'unknown-pax-stat-caret':
+                    tableHeader.className == 'unknown-pax-stat',
+                  'attempted-scan-caret':
+                    tableHeader.className == 'attempted-scan',
+                  'need-to-offload': tableHeader.className == 'need-to-offload',
+                  'auto-heldoff-caret': tableHeader.className == 'auto-heldoff',
+                  'csr-heldoff-caret': tableHeader.className == 'csr-heldoff',
+                  'bags-scanned-on-caret':
+                    tableHeader.className == 'bags-scanned-on',
+                  'bags-scanned-caret': tableHeader.className == 'bags-scanned',
+                  'conx-bags-caret': tableHeader.className == 'conx-bags',
+                  'dept-gate-caret': tableHeader.className == 'dept-gate',
+                  'flight-number-caret':
+                    tableHeader.className == 'flight-number'
+                }">
+                                {{ tableHeader.displayValue }}
+                            </span>
+                            <br class="br-class" />
+                            <i class="caret-up hide-element"></i>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="main-table-body flight-fliter-results">
+                    <tr class="main-table-details" *ngFor="let flight of flightDetailsData"
+                        (click)="onFlightClick(flight.flightKey)">
+                        <td>
+                            <i *ngIf="flight?.etd | ppbmDate : 'isRedIcon'" class="clock-icon"></i>
+                            <i *ngIf="flight?.etd | ppbmDate : 'isOrangeIcon'" class="clock-orange-icon"></i>
+                        </td>
+                        <td class="flight-number">
+                            <span>{{
+                                flight.flightNumber ? flight.flightNumber : noDataText
+                                }}-{{flight.date ? flight.date : noDataText}}</span>
+                        </td>
+                        <td class="dept-gate">
+                            <span>{{ flight.departureGate ? flight.departureGate : noDataText }}</span>
+                        </td>
+                        <td class="status status-width">
+                            <div *ngIf="flight.status !== null">
+                                <span [ngClass]="{
+                    'status-ontime':
+                      flight?.status === 'ON-TIME' || flight?.status === 'OUT',
+                    'status-delayed':
+                      flight?.status === 'DELAYED' || flight?.status === 'CNCLD'
+                  }">
+                                    <span>{{flight?.status ? flight?.status : noDataText}}</span>
+                                </span>
+                            </div>
+                        </td>
+                        <td class="etd">
+                            <span>{{ flight?.etd | ppbmDate : "hourMinute" }}
+                                {{ flight?.etd | ppbmDate : "diff" }}</span>
+                        </td>
+                        <td class="dest">{{flight.arrivalStation ? flight.arrivalStation : noDataText}}</td>
+                        <td class="bags-issued">
+                            {{flight.totalBagsIssued ? flight.totalBagsIssued : noDataText}}
+                        </td>
+                        <td class="conx-bags">
+                            {{flight.totalConxBags ? flight.totalConxBags : noDataText}}
+                        </td>
+                        <td class="bags-scanned">{{flight.totalBagsScanned ? flight.totalBagsScanned : noDataText }}
+                        </td>
+                        <td class="bags-not-scanned">
+                            <span>{{flight.totalNotScannedBags ? flight.totalNotScannedBags : noDataText}}</span>
+                        </td>
+                        <td class="pax-not-boarded">{{flight.totalPaxwithBagsNotBoarded ?
+                            flight.totalPaxwithBagsNotBoarded :
+                            noDataText}}</td>
+                        <td class="unknown-pax-stat'">
+                            {{flight.totalUnknownPaxStatus ? flight.totalUnknownPaxStatus : noDataText}}
+                        </td>
+                        <td class="attempted-scan">
+                            {{flight.totalAttemptedScan ? flight.totalAttemptedScan : noDataText}}
+                        </td>
+                        <td class="need-to-offload">
+                            {{flight.totalNeedToOffLoad ? flight.totalNeedToOffLoad : noDataText}}
+                        </td>
+                        <td class="auto-heldoff'">
+                            {{flight.totalAutoHeldOff ? flight.totalAutoHeldOff : noDataText}}
+                        </td>
+                        <td class="csr-heldoff">
+                            {{flight.totalCSRHeldOff ? flight.totalCSRHeldOff : noDataText}}
+                        </td>
+                        <td class="bags-scanned-on">
+                            {{flight.totalPercentageOfScannedBags ? flight.totalPercentageOfScannedBags : noDataText}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="btn-box text-center" *ngIf="flightDetailsData.length == 0">
+                <h4 class="no-flight-text">
+                    No flights yet! Add your assigned flights to get started.
+                </h4>
+                <div id="flex-container">
+                    <div><i class="plus-icon"></i></div>
+                    <div>
+                        <button class="btn update-btn" (click)="openAddFlightsModal()">
+                            <span class="add-flight-label">
+                                Add flight
+                            </span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<ng-container *ngIf="closedFlightTab">
+    <ppbm-closed-flights-component></ppbm-closed-flights-component>
+</ng-container>
+<ng-container *ngIf="allFlightsTab">
+    <ppbm-all-flights-component></ppbm-all-flights-component>
+</ng-container>
