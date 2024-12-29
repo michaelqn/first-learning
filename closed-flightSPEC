@@ -1,0 +1,308 @@
+import { FlightViewService } from './../shared/services/flight-view.service';
+import { Sort } from '../shared/directives/sort';
+import {
+  ComponentFixture,
+  fakeAsync,
+  TestBed,
+  tick,
+  flush,
+  flushMicrotasks,
+  discardPeriodicTasks,
+} from '@angular/core/testing';
+import { PpbmClosedFlightsComponent } from './ppbm-closed-flights.component';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { of, throwError } from 'rxjs';
+import { SharedDataService } from '../shared/services/shared-data-service';
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
+import { AppConfigService } from '../shared/services/app-config/app-config.service';
+
+describe('PpbmClosedFlightsComponent', () => {
+  let component: PpbmClosedFlightsComponent;
+  let fixture: ComponentFixture<PpbmClosedFlightsComponent>;
+  let service: FlightViewService;
+  let sharedDataService: SharedDataService;
+  let router: Router;
+  let mockScreenType = {
+    isLargeScreen: true,
+    isMediumScreen: false,
+    isMobileScreen: false,
+  };
+  let appConfigService: AppConfigService;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [PpbmClosedFlightsComponent],
+      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([])],
+      providers: [FlightViewService, Sort, AppConfigService],
+    }).compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(PpbmClosedFlightsComponent);
+    component = fixture.componentInstance;
+    service = TestBed.inject(FlightViewService);
+    appConfigService = TestBed.inject(AppConfigService);
+    sharedDataService = TestBed.inject(SharedDataService);
+    router = TestBed.inject(Router);
+    fixture.detectChanges();
+    appConfigService.appSync = {
+      aws_appsync_graphqlEndpoint:
+        'https://fe7qi74wyzg4dlavcvjcps5nj4.appsync-api.us-east-1.amazonaws.com/graphql',
+      region: 'us-east-1',
+      aws_appsync_apikey: 'da2-uwyxdxd3l5hjbfudsadwrtjgee',
+      cognito_user_pools: false,
+    };
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should call getScreenType and subscribe to screenTypeChange', fakeAsync(() => {
+    service.screenTypeChange.next(mockScreenType);
+
+    service.screenTypeChange.subscribe(() => {
+      expect(component.isLargeScreen).toBe(true);
+      expect(component.isMediumScreen).toBe(false);
+      expect(component.isMobileScreen).toBe(false);
+    });
+    component.getScreenType();
+    tick(100);
+  }));
+
+  it('should call getClosedFlightsData and subscribe to closedFlightService.getClosedFlightsData', fakeAsync(() => {
+    let flightData = {
+      statusCode: 200,
+      message: 'Success',
+      responseList: [
+        {
+          monthDate: 'Feb 27',
+          departureDate: '2023-02-27',
+          list: [
+            {
+              flightKey: 'UA9933:20230227:ORD',
+              localEstimatedDepartureDate: '2023-02-27T11:05:00-06:00',
+              etd: '10:45',
+              departureGate: 'C4',
+              status: 'DELAYED',
+              arrivalStation: 'CAO',
+              departureDate: '2023-02-27',
+              userId: 'V847944',
+              totalConxBags: 1,
+              totalNotScannedBags: 4,
+              totalPaxwithBagsNotBoarded: 5,
+              totalPercentageOfScannedBags: '100%',
+              totalNeedToOffLoad: 6,
+              isAssigned: 1,
+              flightNumber: 'UA 9933-27',
+              totalUnknownPaxStatus: 2,
+              totalAttemptedScan: 3,
+              totalAutoHeldOff: 7,
+              totalCSRHeldOff: 8,
+              totalBagsIssued: 1,
+              totalBagsScanned: 2,
+            },
+          ],
+        },
+      ],
+    };
+    const headers = [
+      {
+        key: 'flightNumber',
+        displayValue: 'Flight #',
+        sort: 'desc',
+        className: 'flight-number',
+      },
+      {
+        key: 'deptGate',
+        displayValue: 'Gate',
+        sort: 'desc',
+        className: 'dept-gate',
+      },
+      {
+        key: 'status',
+        displayValue: 'Status',
+        sort: 'desc',
+        className: 'status',
+      },
+      { key: 'etd', displayValue: 'ETD', sort: 'desc', className: 'etd' },
+      { key: 'dest', displayValue: 'Dest', sort: 'desc', className: 'dest' },
+      {
+        key: 'bagsIssued',
+        displayValue: 'Bags issued',
+        sort: 'desc',
+        className: 'bags-issued',
+      },
+      {
+        key: 'conxBags',
+        displayValue: 'Conx bags',
+        sort: 'desc',
+        className: 'conx-bags',
+      },
+      {
+        key: 'bagsScan',
+        displayValue: 'Bags scanned',
+        sort: 'desc',
+        className: 'bags-scanned',
+      },
+      {
+        key: 'bagsNotScan',
+        displayValue: 'Bags not scanned',
+        sort: 'desc',
+        className: 'bags-not-scanned',
+      },
+      {
+        key: 'paxNotBoarded',
+        displayValue: 'Pax w bags not boarded',
+        sort: 'desc',
+        className: 'pax-not-boarded',
+      },
+      {
+        key: 'unknowPax',
+        displayValue: 'Unknown pax stat',
+        sort: 'desc',
+        className: 'unknown-pax-stat',
+      },
+      {
+        key: 'attemptedScan',
+        displayValue: 'Attempted scan',
+        sort: 'desc',
+        className: 'attempted-scan',
+      },
+      {
+        key: 'needOffload',
+        displayValue: 'Need to offload',
+        sort: 'desc',
+        className: 'need-to-offload',
+      },
+      {
+        key: 'autoHeldoff',
+        displayValue: 'Auto heldoff',
+        sort: 'desc',
+        className: 'auto-heldoff',
+      },
+      {
+        key: 'csrHeldoff',
+        displayValue: 'CSR heldoff',
+        sort: 'desc',
+        className: 'csr-heldoff',
+      },
+      {
+        key: 'percentBagsScan',
+        displayValue: '% bags scanned on',
+        sort: 'desc',
+        className: 'bags-scanned-on',
+      },
+    ];
+    component.tableHeaders = headers;
+    const service = TestBed.inject(FlightViewService);
+    const getFlightsDataSpy = spyOn(
+      service,
+      'getFlightsDataByScreenType'
+    ).and.callFake(() => of(flightData as any));
+    service
+      .getFlightsDataByScreenType('ClosedFlights', 'abc', 'ORG','2023-10-04','2023-10-10')
+      .subscribe((data) => {
+        expect(data).toEqual(flightData as any);
+      });
+      component.getClosedFlightsData('2023-10-04','2023-10-10');
+    expect(getFlightsDataSpy).toHaveBeenCalled();
+    flush();
+  }));
+
+  it('should call and subscribe to FlightViewService.getFlightsDataByScreenType and throw error', fakeAsync(() => {
+    const service = TestBed.inject(FlightViewService);
+    const errorData = { msg: 'Error message' };
+    const getBaggageDetailsByBagTagSpy = spyOn(
+      service,
+      'getFlightsDataByScreenType'
+    ).and.returnValue(throwError(errorData));
+
+    service.getFlightsDataByScreenType('ClosedFlights', 'abc', 'ORG','2023-10-04','2023-10-10').subscribe(
+      (data) => {},
+      (error) => {
+        expect(error.msg).toEqual(errorData.msg);
+      }
+    );
+    component.getClosedFlightsData('2023-10-04','2023-10-10');
+    tick(100);
+    expect(getBaggageDetailsByBagTagSpy).toHaveBeenCalled();
+  }));
+
+  it('should call assigned function', () => {
+    component.ngOnInit();
+    component.assigned();
+    expect(component.closedFlightTab).toEqual(false);
+  });
+
+  it('should call closed function', fakeAsync(() => {
+    component.closed();
+    flush();
+    expect(component.closedFlightTab).toEqual(true);
+  }));
+
+  it('should run timeout callback with delay after call tick with millis', fakeAsync(() => {
+    component.getClosedFlightsData('2023-10-04','2023-10-10');
+    component.loading = true;
+    setTimeout(() => {
+      component.loading = true;
+    }, 100);
+    tick(100);
+    expect(component.loading).toBe(true);
+  }));
+
+  it('should call refreshClosedFilterGridData function', fakeAsync(() => {
+    let code = localStorage.getItem('stationCode');
+    component.ngOnInit();
+    component.getClosedFlightsData('2023-10-04','2023-10-10');
+    sharedDataService.refreshClosedFilterGridData.next(true);
+    sharedDataService.refreshClosedFilterGridData.subscribe((data) => {
+      expect(data).toBe(true);
+      component.getClosedFlightsData('2023-10-04','2023-10-10');
+    });
+    tick(10000);
+    flush();
+    flushMicrotasks();
+    discardPeriodicTasks();
+  }));
+
+  it('should call onFlightClick function', fakeAsync(() => {
+    let closedFlightArr = [
+      {
+        flightKey: 'UA8833:20230227:ORD',
+        localEstimatedDepartureDate: '2023-02-27T11:05:00',
+        etd: '2023-02-27T11:05:00',
+        departureGate: 'C4',
+        status: 'DELAYED',
+        arrivalStation: 'CAO',
+        departureDate: '2023-02-27',
+        userId: 'V847944',
+        totalConxBags: 1,
+        totalNotScannedBags: 4,
+        totalPaxwithBagsNotBoarded: 5,
+        totalPercentageOfScannedBags: '100%',
+        totalNeedToOffLoad: 6,
+        isAssigned: 1,
+        flightNumber: '8833',
+        totalUnknownPaxStatus: 2,
+        totalAttemptedScan: 3,
+        totalAutoHeldOff: 7,
+        totalCSRHeldOff: 8,
+        totalBagsIssued: 1,
+        totalBagsScanned: 2,
+        carrierCode: 'UA',
+        route: 'ORD - SFO',
+        date: '27',
+        newDepartureDate: 'February 27',
+      },
+    ];
+    spyOn(router, 'navigate');
+    component.onFlightClick('UA8833:20230227:ORD');
+    service.setSelectedFlightLocalStorageData(
+      'UA8833:20230227:ORD',
+      closedFlightArr,
+      'Closed'
+    );
+  }));
+});

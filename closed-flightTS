@@ -1,0 +1,408 @@
+
+import { FlightViewService } from './../shared/services/flight-view.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { SharedDataService } from '../shared/services/shared-data-service';
+import { interval, Subscription } from 'rxjs';
+import * as moment from 'moment';
+import { PPBMFlightsScreenType } from '../shared/models/ppbm-flights.model';
+import { LocalStorageKeys } from '../shared/models/localstorage-keya.enum';
+import { Router } from '@angular/router';
+import { PpbmErrorDetailsComponent } from './../ppbm-error-details/ppbm-error-details.component';
+import { BaggageDetailsService } from '../shared/services/baggage-details.service';
+@Component({
+  selector: 'ppbm-closed-flights-component',
+  templateUrl: './ppbm-closed-flights.component.html',
+  styleUrls: ['./ppbm-closed-flights.component.scss'],
+})
+export class PpbmClosedFlightsComponent implements OnInit, OnDestroy {
+  flightDetailsData: any[] = [];
+  monthDate: any;
+  closedFlightArray: any = [];
+  isLargeScreen = false;
+  isMediumScreen = false;
+  isMobileScreen = false;
+  todayDate: Date = new Date();
+  today = new Date().toISOString().split('T')[0];
+  flightsArr: any;
+  noDataText = '--';
+  loading = false;
+  userID: string;
+  departureStation: string;
+  closedFlightTab = false;
+  timerSubscription: Subscription | undefined;
+  userStation: Subscription | undefined;
+  refreshData: Subscription | undefined;
+  autoUpdateTimeInterval: any = 1000 * 60 * 1; // = 1 min (millisecs * secs * mins)
+  tableHeaders = [
+    {
+      key: 'newDepartureDate',
+      displayValue: 'Flight #',
+      sort: 'desc',
+      className: 'flight-number',
+    },
+    {
+      key: 'departureGate',
+      displayValue: 'Gate',
+      sort: 'desc',
+      className: 'dept-gate',
+    },
+    { key: 'etd', displayValue: 'ATD', sort: 'desc', className: 'etd' },
+    {
+      key: 'arrivalStation',
+      displayValue: 'Dest',
+      sort: 'desc',
+      className: 'dest',
+    },
+    {
+      key: 'totalBagsIssued',
+      displayValue: 'Bags issued',
+      sort: 'desc',
+      className: 'bags-issued',
+    },
+    {
+      key: 'totalConxBags',
+      displayValue: 'Conx bags',
+      sort: 'desc',
+      className: 'conx-bags',
+    },
+    {
+      key: 'totalBagsScanned',
+      displayValue: 'Bags scanned',
+      sort: 'desc',
+      className: 'bags-scanned',
+    },
+    {
+      key: 'totalNotScannedBags',
+      displayValue: 'Bags not scanned',
+      sort: 'desc',
+      className: 'bags-not-scanned',
+    },
+    {
+      key: 'totalPaxwithBagsNotBoarded',
+      displayValue: 'Pax w bags not boarded',
+      sort: 'desc',
+      className: 'pax-not-boarded',
+    },
+    {
+      key: 'totalUnknownPaxStatus',
+      displayValue: 'Unknown pax stat',
+      sort: 'desc',
+      className: 'unknown-pax-stat',
+    },
+    {
+      key: 'totalAttemptedScan',
+      displayValue: 'Attempted scan',
+      sort: 'desc',
+      className: 'attempted-scan',
+    },
+    {
+      key: 'totalNeedToOffLoad',
+      displayValue: 'Bags not ATL',
+      sort: 'desc',
+      className: 'need-to-offload',
+    },
+    {
+      key: 'totalCSRHeldOff',
+      displayValue: 'CSR heldoff',
+      sort: 'desc',
+      className: 'csr-heldoff',
+    },
+    {
+      key: 'totalPercentageOfScannedBags',
+      displayValue: '% bags scanned on',
+      sort: 'desc',
+      className: 'bags-scanned-on',
+    },
+  ];
+  previousSortOrder = {
+    key: 'etd',
+    displayValue: 'ATD',
+    sort: 'desc',
+    className: 'etd',
+  };
+  flightDetailsList: any;
+  assignedFlightFilter = false;
+  closedFlightFilter: any;
+  currentTabKey = 'currentFLightDetailTab';
+  currentTab: any;
+  startDateTime: any;
+  endDateTime: any;
+  stationLocalTime: any;
+  selectDateTime: string;
+  selectedDateTime: string | null;
+  manualRefresh: boolean;
+  startTime: any;
+  endTime: any;
+  offset: number;
+  subscription: Subscription;
+  constructor(
+    private sharedDataService: SharedDataService,
+    protected modalService: NgbModal,
+    private flightViewService: FlightViewService,
+    private baggageDetailsService: BaggageDetailsService,
+    private router: Router
+  ) {
+    this.subscription = new Subscription();
+  }
+
+  ngOnInit() {
+    this.initialization();
+    this.makeListener();
+    this.getScreenType();
+    this.currentTab = localStorage.getItem(this.currentTabKey);
+
+    this.userStation = this.sharedDataService.userSelectedStation.subscribe(
+      (closedFlights) => {
+        this.currentTab = localStorage.getItem(this.currentTabKey);
+
+        if (this.currentTab === 'ClosedFlights' && !this.manualRefresh) {
+          this.closedFlightArray = [];
+          this.flightDetailsList = [];
+          this.departureStation = closedFlights;
+          this.todayDate = moment(this.stationLocalTime).toDate();
+          localStorage.setItem(
+            'todayDateSelected',
+            this.todayDate.toDateString()
+          );
+          this.today = this.todayDate.toISOString();
+          this.offset = Number(localStorage.getItem('offset'));
+          const selectedDateRange =
+            this.flightViewService.getCloseSelectedDate();
+          if (selectedDateRange) {
+            this.startDateTime = selectedDateRange.startDateTime;
+            this.endDateTime = selectedDateRange.endDateTime;
+          } else {
+            this.startDateTime = `${moment
+              .utc()
+              .format('YYYY-MM-DDT00:00:00')}Z`;
+            this.endDateTime = `${this.startDateTime.slice(0, 10)}T23:59:59Z`;
+          }
+          console.log(this.startDateTime);
+          let startTimeFmt;
+          let endTimeFmt;
+          if (this.offset > 0) {
+            startTimeFmt = moment(this.startDateTime)
+              .subtract(Math.abs(this.offset), 'm')
+              .toDate()
+              .setSeconds(0);
+            endTimeFmt = moment(this.endDateTime)
+              .subtract(Math.abs(this.offset), 'm')
+              .toDate()
+              .setSeconds(59);
+          } else {
+            startTimeFmt = moment(this.startDateTime)
+              .add(Math.abs(this.offset), 'm')
+              .toDate()
+              .setSeconds(0);
+            endTimeFmt = moment(this.endDateTime)
+              .add(Math.abs(this.offset), 'm')
+              .toDate()
+              .setSeconds(59);
+          }
+          this.startDateTime =
+            moment(startTimeFmt).toISOString().split('.')[0] + 'Z';
+          this.endDateTime =
+            moment(endTimeFmt).toISOString().split('.')[0] + 'Z';
+          const stationTime = localStorage.getItem('stationTime');
+          this.getClosedFlightsData(this.startDateTime, this.endDateTime);
+        }
+      }
+    );
+    this.timerSubscription = interval(this.autoUpdateTimeInterval).subscribe(
+      () => {
+        this.getClosedFlightsData(this.startDateTime, this.endDateTime);
+      }
+    );
+  }
+
+  makeListener(): void {
+    this.subscription.add(
+      this.sharedDataService.refreshBagsIssuedData.subscribe((data) => {
+        this.manualRefresh = data;
+        if (this.manualRefresh) {
+          this.startDateTime = localStorage.getItem('startDateTime') as string;
+          this.endDateTime = localStorage.getItem('endDateTime') as string;
+          this.getClosedFlightsData(this.startDateTime, this.endDateTime);
+        }
+      })
+    );
+    this.subscription.add(
+      this.sharedDataService.closedFlightsArrDatePicker.subscribe((data) => {
+        if (
+          this.startDateTime !== data?.startDateTime &&
+          this.endDateTime !== data.endDateTime
+        ) {
+          this.startDateTime = data.startDateTime;
+          this.endDateTime = data.endDateTime;
+          if (data) {
+            this.getClosedFlightsData(this.startDateTime, this.endDateTime);
+          }
+        }
+      })
+    );
+  }
+
+  initialization(): void {
+    const localStorageUserData = localStorage.getItem('userProfile');
+    const userProfile = localStorageUserData
+      ? JSON.parse(localStorageUserData || '')
+      : '';
+    this.userID = userProfile?.['preferredUsername'] || '';
+    this.departureStation = localStorage.getItem('stationCode') || '';
+    localStorage.removeItem(LocalStorageKeys.SelectedFlights);
+  }
+
+  getScreenType() {
+    this.sharedDataService.screenTypeChange.subscribe((data) => {
+      this.isLargeScreen = data.isLargeScreen;
+      this.isMediumScreen = data.isMediumScreen;
+      this.isMobileScreen = data.isMobileScreen;
+    });
+  }
+  getClosedFlightsData(startDateTime: any, endDateTime: any) {
+    this.loading = true;
+    this.closedFlightArray = [];
+    this.flightDetailsList = [];
+    this.flightDetailsData = [];
+    this.departureStation = localStorage.getItem('stationCode') || '';
+    this.flightViewService
+      .getFlightsDataByScreenType(
+        PPBMFlightsScreenType.ClosedFlights,
+        this.userID,
+        this.departureStation,
+        startDateTime,
+        endDateTime
+      )
+      .subscribe(
+        (result: any) => {
+          this.flightDetailsData = result.responseList;
+          if (
+            result.responseList &&
+            result.responseList &&
+            Object.keys(result.responseList).length > 0
+          ) {
+            this.flightDetailsData.forEach((closedFlight: any) => {
+              closedFlight.list.forEach((flight: any) => {
+                let flightNumber = flight.flightKey.split(':')[0];
+                flight.date = flight.flightKey.split(':')[1].slice(6, 8);
+                flight.carrierCode = flightNumber.match(/[a-z]+|[^a-z]+/gi)[0];
+                flight.flightNumber = flightNumber.match(/[a-z]+|[^a-z]+/gi)[1];
+                flight.newDepartureDate = closedFlight.monthDate;
+                this.closedFlightArray.push(flight);
+                flight.etd = flight.localEstimatedDepartureDate;
+                this.sharedDataService.refreshClosedTable.next(true);
+                this.sharedDataService.updateRefreshTime.next(true);
+                setTimeout(() => {
+                  this.loading = false;
+                  const sortDiv = <HTMLElement>(
+                    document.querySelector(
+                      `.${this.previousSortOrder.className}`
+                    )
+                  );
+                  Array.from(document.querySelectorAll('th > i')).forEach(
+                    (tag: any) => {
+                      tag.classList.add('hide-element');
+                    }
+                  );
+                  if (sortDiv) {
+                    const iTag = sortDiv.getElementsByTagName('i')[0];
+                    if (iTag?.classList) {
+                      iTag.classList.remove('caret-up');
+                      iTag.classList.remove('caret-down');
+                      if (this.previousSortOrder.sort === 'asc') {
+                        iTag.classList.add('caret-up');
+                      } else {
+                        iTag.classList.add('caret-down');
+                      }
+                      iTag.classList.remove('hide-element');
+                    }
+                  }
+                }, 1000);
+              });
+            });
+            this.closedFlightArray = this.uniqueData(this.closedFlightArray);
+          } else {
+            this.flightDetailsData = [];
+            if (
+              this.currentTab === PPBMFlightsScreenType.ClosedFlights &&
+              !this.modalService.hasOpenModals()
+            ) {
+              const dialogRef = this.modalService.open(
+                PpbmErrorDetailsComponent,
+                {
+                  size: 'md',
+                  centered: true,
+                  backdrop: 'static',
+                  keyboard: false,
+                }
+              );
+              dialogRef.componentInstance.message = 'Record Not Found.';
+              dialogRef.componentInstance.modalRef = dialogRef;
+            }
+          }
+        },
+        (error) => {
+          this.flightDetailsData = [];
+          if (
+            this.currentTab === PPBMFlightsScreenType.ClosedFlights &&
+            !this.modalService.hasOpenModals()
+          ) {
+            const dialogRef = this.modalService.open(
+              PpbmErrorDetailsComponent,
+              {
+                size: 'md',
+                centered: true,
+                backdrop: 'static',
+                keyboard: false,
+              }
+            );
+            dialogRef.componentInstance.message = error?.message;
+            dialogRef.componentInstance.modalRef = dialogRef;
+          }
+        }
+      );
+  }
+  closed() {
+    this.closedFlightTab = true;
+  }
+  assigned() {
+    this.closedFlightTab = false;
+  }
+  ngOnDestroy(): void {
+    this.timerSubscription?.unsubscribe();
+    this.subscription?.unsubscribe();
+    this.userStation?.unsubscribe();
+    this.refreshData?.unsubscribe();
+  }
+
+  uniqueData(data: any) {
+    let result: any = [];
+    result = data.reduce((acc: any, val: any) => {
+      if (!acc.find((el: any) => el.flightKey === val.flightKey)) {
+        acc.push(val);
+      }
+      return acc;
+    }, []);
+    return result;
+  }
+
+  onFlightClick(flightKey: string): void {
+    this.flightViewService.setSelectedFlightLocalStorageData(
+      flightKey,
+      this.closedFlightArray,
+      'Closed'
+    );
+    this.baggageDetailsService.appSyncSubscribeToFlightBagSummary(flightKey);
+    this.router.navigate(['ppbm/summarization']);
+  }
+}
+
+
+
+
+
+
+
+
+
