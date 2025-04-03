@@ -426,3 +426,167 @@ body {
 .transfer-btn:hover {
     background-color: #218838;
 }
+==============================================MROE UPDATE=====
+
+Based on the screenshot, you have an array called `cardsContent` that contains objects with properties like `title`, `description`, `href`, and `navText`. These objects represent different cards with messages about setting up recurring transfers, making one-time transfers, or learning more about other account types. You want to display only one card at a time in Angular based on a specific condition.
+
+Let’s break this down step-by-step to achieve this in Angular.
+
+### Step 1: Define the `cardsContent` Array in Your Component
+First, you need to define the `cardsContent` array in your Angular component. This array will hold the card data as shown in the screenshot.
+
+```typescript
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-card-display',
+  templateUrl: './card-display.component.html',
+  styleUrls: ['./card-display.component.css']
+})
+export class CardDisplayComponent {
+  cardsContent = [
+    {
+      title: "You haven't set up a recurring transfer",
+      description: "Adding money regularly can help you meet your goal. Plus, putting it on automatic means one less thing to do!",
+      href: "this.windowService.getDigitalAdvisorUrl('/transfer/')",
+      navText: "Set up a transfer"
+    },
+    {
+      title: "You've set up a recurring transfer—great job!",
+      description: "If there could be a gap between what you plan to invest and your goal, there's always an option to add a little more.",
+      href: "this.windowService.getDigitalAdvisorUrl('/transfer/')",
+      navText: "Make a one-time transfer"
+    },
+    {
+      title: "You've contributed the maximum amount for the year",
+      description: "Don't let that stop your investing momentum! Check out some of Fidelity Go's other account types.",
+      href: "https://www.fidelity.com/managed-accounts/fidelity-go",
+      navText: "Learn more"
+    }
+  ];
+
+  // Variable to determine which card to display
+  selectedCardIndex: number = 0; // Default to the first card
+}
+```
+
+### Step 2: Add Logic to Determine Which Card to Display
+You need a condition to decide which card to show. For this example, let’s assume the condition is based on some user state, such as whether they’ve set up a recurring transfer or reached the maximum contribution. You can define a method or use a variable to set the `selectedCardIndex` based on that condition.
+
+For simplicity, let’s say you have a variable that tracks the user’s state:
+
+```typescript
+export class CardDisplayComponent {
+  cardsContent = [/* same as above */];
+
+  selectedCardIndex: number = 0; // Default to the first card
+
+  // Example user state variables (you can adjust these based on your logic)
+  hasRecurringTransfer: boolean = false;
+  hasReachedMaxContribution: boolean = false;
+
+  ngOnInit() {
+    this.updateSelectedCard();
+  }
+
+  updateSelectedCard() {
+    if (this.hasReachedMaxContribution) {
+      this.selectedCardIndex = 2; // Show "You've contributed the maximum amount for the year"
+    } else if (this.hasRecurringTransfer) {
+      this.selectedCardIndex = 1; // Show "You've set up a recurring transfer—great job!"
+    } else {
+      this.selectedCardIndex = 0; // Show "You haven't set up a recurring transfer"
+    }
+  }
+
+  // Simulate a change in user state (e.g., after an API call or user action)
+  simulateUserStateChange() {
+    // Example: Toggle the state for testing
+    this.hasRecurringTransfer = true;
+    this.hasReachedMaxContribution = false;
+    this.updateSelectedCard();
+  }
+}
+```
+
+### Step 3: Display the Selected Card in the Template
+In your component’s template (`card-display.component.html`), use Angular’s `*ngIf` or `ngSwitch` to display the card based on the `selectedCardIndex`. Alternatively, you can directly bind to the selected card from the array.
+
+Here’s an example using direct binding:
+
+```html
+<div *ngIf="cardsContent[selectedCardIndex]" class="card">
+  <h3>{{ cardsContent[selectedCardIndex].title }}</h3>
+  <p>{{ cardsContent[selectedCardIndex].description }}</p>
+  <a [href]="cardsContent[selectedCardIndex].href" target="_blank">
+    {{ cardsContent[selectedCardIndex].navText }}
+  </a>
+</div>
+```
+
+### Step 4: Add Some Basic Styling
+In your `card-display.component.css`, add some basic styling to make the card look nice:
+
+```css
+.card {
+  border: 1px solid #ccc;
+  padding: 20px;
+  margin: 10px;
+  border-radius: 5px;
+  max-width: 400px;
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+.card a {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 3px;
+}
+
+.card a:hover {
+  background-color: #0056b3;
+}
+```
+
+### Step 5: Handle Dynamic Conditions
+In a real application, the conditions (`hasRecurringTransfer` or `hasReachedMaxContribution`) would likely come from an API or user input. You can update the `selectedCardIndex` whenever these conditions change, such as after a user sets up a transfer or reaches their contribution limit.
+
+For example, if you’re fetching user data from a service:
+
+```typescript
+import { SomeService } from './some.service'; // Hypothetical service
+
+export class CardDisplayComponent {
+  constructor(private someService: SomeService) {}
+
+  ngOnInit() {
+    this.someService.getUserState().subscribe(userState => {
+      this.hasRecurringTransfer = userState.hasRecurringTransfer;
+      this.hasReachedMaxContribution = userState.hasReachedMaxContribution;
+      this.updateSelectedCard();
+    });
+  }
+
+  // Rest of the code remains the same
+}
+```
+
+### Explanation of the Approach
+- **Array of Cards**: The `cardsContent` array holds all possible cards. Each card has a `title`, `description`, `href`, and `navText`.
+- **Condition Logic**: The `selectedCardIndex` determines which card to display. The `updateSelectedCard` method sets this index based on conditions like whether the user has a recurring transfer or has reached the maximum contribution.
+- **Template Binding**: The template uses `cardsContent[selectedCardIndex]` to display the selected card’s data.
+- **Dynamic Updates**: The `updateSelectedCard` method can be called whenever the user’s state changes (e.g., after an API call or user action).
+
+### Notes
+- The `href` values in your screenshot (e.g., `this.windowService.getDigitalAdvisorUrl('/transfer/')`) suggest that you’re using a service to generate URLs dynamically. You’ll need to inject and use that service in your component to resolve those URLs properly.
+- If the conditions are more complex or the data is dynamic, you might want to fetch the `cardsContent` array from a backend API instead of hardcoding it.
+- For better performance with a large number of cards, you could use `*ngFor` with a filter, but since you only want to display one card at a time, the approach above is simpler.
+
+Let me know if you need further clarification or have a more specific condition in mind!
