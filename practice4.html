@@ -227,3 +227,96 @@ document.body.appendChild(div)
    
     </body>
 </html>
+
+========================================================
+import { Component, OnInit } from '@angular/core';
+// Assuming you have a service like this for the URL
+// import { WindowService } from './window.service';
+
+interface CardContent {
+  id: string; // Added an ID for easier selection
+  title: string;
+  description: string;
+  href: string;
+  navText: string;
+}
+
+@Component({
+  selector: 'app-info-card',
+  templateUrl: './info-card.component.html',
+  styleUrls: ['./info-card.component.css']
+})
+export class InfoCardComponent implements OnInit {
+
+  // --- Your Conditions (replace with your actual logic) ---
+  userHasRecurringTransfer: boolean = false;
+  userReachedMaxContribution: boolean = false;
+  // ---
+
+  cardsContent: CardContent[] = [
+    {
+      id: 'setup-recurring',
+      title: 'You haven\'t set up a recurring transfer',
+      description: 'Adding money regularly can help you meet your goal. Plus, putting it on automatic means one less thing to...',
+      // Use the actual service method to get the full URL if needed
+      href: '/ftgw/digital/transfer/', // Example relative path
+      navText: 'Set up a transfer',
+    },
+    {
+      id: 'has-recurring',
+      title: 'You\'ve set up a recurring transfer - great job!',
+      description: 'If there could be a gap between what you plan to invest and your goal, there\'s always an option to add a...',
+      href: '/ftgw/digital/transfer/', // Example relative path
+      navText: 'Make a one-time transfer',
+    },
+    {
+      id: 'max-contribution',
+      title: 'You\'ve contributed the maximum amount for the year',
+      description: 'Don\'t let that stop your investing momentum! Check out some of Fidelity Go\'s other account types.',
+      href: 'https://www.fidelity.com/managed-accounts/fidelity-go', // Example absolute path
+      navText: 'Learn more',
+    }
+  ];
+
+  cardToDisplay: CardContent | undefined; // Variable to hold the selected card
+
+  // Inject services like WindowService if needed for URL generation
+  // constructor(private windowService: WindowService) {}
+  constructor() {}
+
+  ngOnInit(): void {
+    this.selectCard();
+  }
+
+  selectCard(): void {
+    if (this.userReachedMaxContribution) {
+      this.cardToDisplay = this.cardsContent.find(card => card.id === 'max-contribution');
+    } else if (this.userHasRecurringTransfer) {
+      this.cardToDisplay = this.cardsContent.find(card => card.id === 'has-recurring');
+    } else {
+      this.cardToDisplay = this.cardsContent.find(card => card.id === 'setup-recurring');
+    }
+
+    // Optional: Resolve relative URLs here if needed using your service
+    // if (this.cardToDisplay && this.cardToDisplay.href.startsWith('/')) {
+    //   this.cardToDisplay.href = this.windowService.getDigitalHostUrl(this.cardToDisplay.href);
+    // }
+  }
+
+  // Example function to simulate changing conditions
+  simulateSettingRecurringTransfer(hasTransfer: boolean): void {
+    this.userHasRecurringTransfer = hasTransfer;
+    this.userReachedMaxContribution = false; // Ensure other conditions might reset
+    this.selectCard();
+  }
+}
+===============================================
+<div *ngIf="cardToDisplay" class="card"> <h2>{{ cardToDisplay.title }}</h2>
+  <p>{{ cardToDisplay.description }}</p>
+  <a [href]="cardToDisplay.href" target="_blank" rel="noopener noreferrer">
+    {{ cardToDisplay.navText }}
+  </a>
+  </div>
+
+<button (click)="simulateSettingRecurringTransfer(false)">Simulate No Recurring Transfer</button>
+<button (click)="simulateSettingRecurringTransfer(true)">Simulate Has Recurring Transfer</button>
