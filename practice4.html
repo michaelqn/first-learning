@@ -367,3 +367,177 @@ cardsContent: CardContentDisplay[] = [
       );
     }
   }
+========================================================
+
+
+
+Let's write unit tests for this Angular component using Jasmine and Angular's testing utilities. First, I'll note that there seems to be a logic error in the `selectCardDisplay()` method - it has two identical `if (this.isRecurringTransfer)` conditions, which means the second condition will never execute. I'll assume one should check for a different condition (perhaps `hasReachedMaxContribution`) and write tests accordingly.
+
+Here's a complete unit test suite:
+
+```typescript
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component } from '@angular/core';
+import { WindowService } from './window.service'; // Assuming this is the service's path
+
+// Define the interface (you might already have this in a separate file)
+interface CardContentDisplay {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+  navText: string;
+}
+
+// Mock WindowService
+class MockWindowService {
+  getDigitalHostUrl(path: string): string {
+    return `https://mock-digital-host${path}`;
+  }
+}
+
+@Component({
+  selector: 'app-test-component',
+  template: ''
+})
+class TestComponent {
+  constructor(private windowService: WindowService) {}
+
+  cardsContent: CardContentDisplay[] = [
+    {
+      id: 'setup-recurring-transfer',
+      title: 'You haven’t set up a recurring transfer',
+      description: 'Adding money regularly can help you meet your goal. Plus, putting it on automatic means one less thing to do!',
+      href: this.windowService.getDigitalHostUrl(`/ftgw/digital/transfer/`),
+      navText: 'Set up a transfer',
+    },
+    {
+      id: 'has-recurring-transfer',
+      title: 'You’ve set up a recurring transfer—great job!',
+      description: 'If there could be a gap between what you plan to invest and your goal, there’s always an option to add a little more.',
+      href: this.windowService.getDigitalHostUrl(`/ftgw/digital/transfer/`),
+      navText: 'Make a one-time transfer',
+    },
+    {
+      id: 'contribution-maximum',
+      title: 'You’ve contributed the maximum amount for the year',
+      description: 'Don’t let that stop your investing momentum! Check out some of Fidelity Go’s other account types.',
+      href: 'https://www.fidelity.com/managed-accounts/fidelity-go',
+      navText: 'Learn more',
+    },
+  ];
+
+  cardToDisplay: CardContentDisplay;
+  isRecurringTransfer: boolean = false;
+  // Adding this property since the original code seems to have a logic error
+  hasReachedMaxContribution: boolean = false;
+
+  ngOnInit(): void {
+    this.selectCardDisplay();
+  }
+
+  selectCardDisplay(): void {
+    // Corrected logic assuming this is what was intended
+    if (this.hasReachedMaxContribution) {
+      this.cardToDisplay = this.cardsContent.find(
+        (card) => card.id === 'contribution-maximum'
+      );
+    } else if (this.isRecurringTransfer) {
+      this.cardToDisplay = this.cardsContent.find(
+        (card) => card.id === 'has-recurring-transfer'
+      );
+    } else {
+      this.cardToDisplay = this.cardsContent.find(
+        (card) => card.id === 'setup-recurring-transfer'
+      );
+    }
+  }
+}
+
+describe('TestComponent', () => {
+  let component: TestComponent;
+  let fixture: ComponentFixture<TestComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [TestComponent],
+      providers: [
+        { provide: WindowService, useClass: MockWindowService }
+      ]
+    }).compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(TestComponent);
+    component = fixture.componentInstance;
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should display setup-recurring-transfer card when no recurring transfer and no max contribution', () => {
+    component.isRecurringTransfer = false;
+    component.hasReachedMaxContribution = false;
+    fixture.detectChanges(); // Triggers ngOnInit
+
+    expect(component.cardToDisplay.id).toBe('setup-recurring-transfer');
+    expect(component.cardToDisplay.title).toBe('You haven’t set up a recurring transfer');
+  });
+
+  it('should display has-recurring-transfer card when recurring transfer is set but not at max contribution', () => {
+    component.isRecurringTransfer = true;
+    component.hasReachedMaxContribution = false;
+    fixture.detectChanges();
+
+    expect(component.cardToDisplay.id).toBe('has-recurring-transfer');
+    expect(component.cardToDisplay.title).toBe('You’ve set up a recurring transfer—great job!');
+  });
+
+  it('should display contribution-maximum card when max contribution is reached', () => {
+    component.isRecurringTransfer = true;
+    component.hasReachedMaxContribution = true;
+    fixture.detectChanges();
+
+    expect(component.cardToDisplay.id).toBe('contribution-maximum');
+    expect(component.cardToDisplay.title).toBe('You’ve contributed the maximum amount for the year');
+  });
+
+  it('should initialize cardsContent with correct href values using WindowService', () => {
+    expect(component.cardsContent[0].href).toBe('https://mock-digital-host/ftgw/digital/transfer/');
+    expect(component.cardsContent[1].href).toBe('https://mock-digital-host/ftgw/digital/transfer/');
+    expect(component.cardsContent[2].href).toBe('https://www.fidelity.com/managed-accounts/fidelity-go');
+  });
+
+  it('should call selectCardDisplay on initialization', () => {
+    spyOn(component, 'selectCardDisplay');
+    fixture.detectChanges();
+    expect(component.selectCardDisplay).toHaveBeenCalled();
+  });
+});
+```
+
+This test suite includes:
+
+1. A mock `WindowService` since the original code depends on it
+2. A test component with corrected logic (assuming the duplicate condition was a mistake)
+3. Setup with TestBed configuration
+4. Basic component creation test
+5. Tests for each card display scenario
+6. Test for proper href value initialization
+7. Test for ngOnInit behavior
+
+Key points about the tests:
+
+- They verify the component's core functionality of selecting the appropriate card based on conditions
+- They check that the component initializes properly
+- They validate the dependency injection with WindowService
+- They use spies to verify method calls
+- They test all possible paths in the `selectCardDisplay()` method
+
+Note: I had to make some assumptions:
+1. Added `hasReachedMaxContribution` property since the original code's logic seemed incorrect
+2. Assumed the existence of a `WindowService` with a `getDigitalHostUrl` method
+3. Created a basic component structure since the full component context wasn't provided
+
+You might need to adjust the import paths, service mock, and property names based on your actual project structure and requirements.
