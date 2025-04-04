@@ -565,3 +565,27 @@ You might need to adjust the import paths, service mock, and property names base
     <a [href]="card.href">{{ card.navText }}</a>
   </div>
 </ng-template>
+	  ========================================
+	  
+	  <ng-container *ngFor="let card of cardsContent">
+
+  <div *ngIf="!userHasRecurringTransfer && !userReachedMaxContribution && card.id === 'setup-recurring'" class="card">
+    <h2>{{ card.title }}</h2>
+    <p>{{ card.description }}</p>
+    <a [href]="card.href">{{ card.navText }}</a>
+  </div>
+
+  <div *ngIf="userHasRecurringTransfer && !userReachedMaxContribution && card.id === 'has-recurring'" class="card">
+     <h2>{{ card.title }}</h2>
+     <p>{{ card.description }}</p>
+     <a [href]="card.href">{{ card.navText }}</a>
+  </div>
+
+  <div *ngIf="userReachedMaxContribution && card.id === 'max-contribution'" class="card">
+      <h2>{{ card.title }}</h2>
+      <p>{{ card.description }}</p>
+      <a [href]="card.href">{{ card.navText }}</a>
+  </div>
+
+</ng-container>
+	  
