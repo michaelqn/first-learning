@@ -320,3 +320,50 @@ export class InfoCardComponent implements OnInit {
 
 <button (click)="simulateSettingRecurringTransfer(false)">Simulate No Recurring Transfer</button>
 <button (click)="simulateSettingRecurringTransfer(true)">Simulate Has Recurring Transfer</button>
+=========
+cardsContent: CardContentDisplay[] = [
+    {
+      id: 'setup-recurring-transfer',
+      title: 'You haven’t set up a recurring transfer',
+      description:
+        'Adding money regularly can help you meet your goal. Plus, putting it on automatic means one less thing to do!',
+      href: this.windowService.getDigitalHostUrl(`/ftgw/digital/transfer/`),
+      navText: 'Set up a transfer',
+    },
+    {
+      id: 'has-recurring-transfer',
+      title: 'You’ve set up a recurring transfer—great job!',
+      description:
+        'If there could be a gap between what you plan to invest and your goal, there’s always an option to add a little more.',
+      href: this.windowService.getDigitalHostUrl(`/ftgw/digital/transfer/`),
+      navText: 'Make a one-time transfer',
+    },
+    {
+      id: 'contribution-maximum',
+      title: 'You’ve contributed the maximum amount for the year',
+      description:
+        'Don’t let that stop your investing momentum! Check out some of Fidelity Go’s other account types.',
+      href: 'https://www.fidelity.com/managed-accounts/fidelity-go',
+      navText: 'Learn more',
+    },
+  ];
+  cardToDisplay: CardContentDisplay;
+
+  ngOnInit(): void {
+    this.selectCardDisplay();
+  }
+  selectCardDisplay(): void {
+    if (this.isRecurringTransfer) {
+      this.cardToDisplay = this.cardsContent.find(
+        (card) => card.id === 'contribution-maximum'
+      );
+    } else if (this.isRecurringTransfer) {
+      this.cardToDisplay = this.cardsContent.find(
+        (card) => card.id === 'has-recurring-transfer'
+      );
+    } else {
+      this.cardToDisplay = this.cardsContent.find(
+        (card) => card.id === 'setup-recurring-transfer'
+      );
+    }
+  }
