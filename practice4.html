@@ -541,3 +541,27 @@ Note: I had to make some assumptions:
 3. Created a basic component structure since the full component context wasn't provided
 
 You might need to adjust the import paths, service mock, and property names based on your actual project structure and requirements.
+
+	  =============================================
+
+	  <!-- Container to render the template -->
+<ng-container [ngTemplateOutlet]="cards" [ngTemplateOutletContext]="{ $implicit: cardsContent[selectedCardIndex] }"></ng-container>
+
+<!-- Define the ng-template -->
+<ng-template #cards let-card>
+  <div class="card">
+    <h3>{{ card.titles }}</h3>
+    <p>{{ card.description }}</p>
+    <a [href]="card.href">{{ card.navText }}</a>
+  </div>
+</ng-template><!-- Container to render the template -->
+<ng-container [ngTemplateOutlet]="cards" [ngTemplateOutletContext]="{ $implicit: cardsContent[selectedCardIndex] }"></ng-container>
+
+<!-- Define the ng-template -->
+<ng-template #cards let-card>
+  <div class="card">
+    <h3>{{ card.titles }}</h3>
+    <p>{{ card.description }}</p>
+    <a [href]="card.href">{{ card.navText }}</a>
+  </div>
+</ng-template>
