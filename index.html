@@ -585,4 +585,274 @@ describe('Projections Get Service', function() {
     });
   });
 });
+===============================
+'use strict';
 
+const nock = require('nock'),
+  request = require('request'),
+  { config } = require('../service.conf'),
+  transform = require('jsonpath-object-transform'),
+  proxyquire = require('proxyquire').noPreserveCache();
+
+const APP_ID = 'abc123',
+  APP_NAME = 'bob',
+  PROJECTIONS_FREQUENCY = 'monthly',
+  PROJECTIONS_CONTEXT = 'Standard',
+  PRODUCT_CODE = 'ppa',
+  req = {
+    id: '123',
+    user: {},
+    headers: {}
+  };
+
+const expectHeaders = {
+  'Content-Type': 'application/json',
+  'log-tracking-id': req.id,
+  'calling-app-id': APP_ID,
+  AppName: APP_NAME
+};
+const host = 'https://mock.fmr.com';
+const path = '/projections';
+
+let projectionsGetService,
+  ProjectionsGetServiceClass,
+  startingBalance,
+  taxable,
+  tamIds,
+  endDate,
+  recurringDepositAmt,
+  expectedBody,
+  expectOptions,
+  transformCalled;
+
+describe('Projections Get Service', function() {
+  beforeEach(() => {
+    transformCalled = false;
+    startingBalance = 3000;
+    taxable = true;
+    tamIds = [85];
+    endDate = Date.now() + 3600 * 24 * 365 * 5;
+    recurringDepositAmt = 1000;
+    expectedBody = {
+      projectionPeriod: endDate,
+      isTaxable: taxable,
+      projectionFrequency: PROJECTIONS_FREQUENCY,
+      startingBalance: 3000,
+      contribution: 1000,
+      confidenceLevels: [0.5, 0.9],
+      assetAllocations: [{ assetAllocationId: 85, context: 'Standard', product: 'ppa' }]
+    };
+
+    expectOptions = {
+      url: host + path,
+      method: 'post',
+      rejectUnauthorized: false,
+      maxAttempts: 3,
+      retryDelay: 1000,
+      headers: expectHeaders,
+      body: expectedBody
+    };
+
+    ProjectionsGetServiceClass = proxyquire('./get', {
+      '../service.conf': {
+        config: {
+          APP_ID: APP_ID,
+          APP_NAME: APP_NAME,
+          PROJECTIONS_SERVICE_ENDPOINT: host + path,
+          PROJECTIONS_CONFIDENCE_LEVELS: [0.5, 0.9],
+          PROJECTIONS_FREQUENCY: PROJECTIONS_FREQUENCY,
+          PROJECTIONS_CONTEXT: PROJECTIONS_CONTEXT,
+          PRODUCT_CODE: PRODUCT_CODE,
+          REJECT_UNAUTHORIZED: false
+        }
+      },
+      requestretry: {
+        withGatewayOauth: () => {
+          return {
+            request: (...args) => {
+              args[0].json = true;
+              return request(args[0], args[1]);
+            }
+          };
+        }
+      },
+      'jsonpath-object-transform': (...args) => {
+        transformCalled = true;
+        return transform.apply(transform, args);
+      }
+    });
+    projectionsGetService = new ProjectionsGetServiceClass(req, 3, 1000);
+  });
+
+  afterEach(() => {
+    nock.cleanAll();
+  });
+
+  describe('method: call', () => {
+    it('should make a request method with options created by createOptions, createHeaders, and createBody methods', () => {
+      spyOn(projectionsGetService, 'request').and.returnValue({ then: () => {} });
+      spyOn(projectionsGetService, 'createHeaders');
+      spyOn(projectionsGetService, 'createBody');
+      spyOn(projectionsGetService, 'getCacheKey').and.callThrough();
+      projectionsGetService.call(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
+      expect(projectionsGetService.request).toHaveBeenCalled();
+      expect(projectionsGetService.createHeaders).toHaveBeenCalled();
+      expect(projectionsGetService.createBody).toHaveBeenCalled();
+      expect(projectionsGetService.getCacheKey).toHaveBeenCalledWith(
+        endDate,
+        taxable,
+        startingBalance,
+        tamIds,
+        recurringDepositAmt
+      );
+    });
+
+    it('should return cached projections if available', () => {
+      const cachedData = [{ assetAllocation: { name: 'Cached' } }];
+      spyOn(projectionsGetService, 'getCacheKey').and.returnValue('cacheKey');
+      spyOn(projectionsGetService, 'request');
+      projectionsGetService.projectionsCache.set('cacheKey', cachedData);
+      const result = projectionsGetService.call(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
+      expect(projectionsGetService.request).not.toHaveBeenCalled();
+      return result.then(data => {
+        expect(data).toEqual(cachedData);
+      });
+    });
+  });
+
+  describe('method: request', () => {
+    it('should make a request to the backend and return results to the mapper', () => {
+      const mockResponse = require('../mocks/sample-response');
+      nock(host)
+        .post(path)
+        .reply(200, mockResponse);
+      spyOn(projectionsGetService, 'mapper').and.callThrough();
+      return projectionsGetService.request(projectionsGetService.createOptions(endDate, taxable, startingBalance, tamIds, recurringDepositAmt), 'abc').then(
+        () => {
+          expect(projectionsGetService.mapper).toHaveBeenCalledWith(
+            null,
+            jasmine.any(Object),
+            mockResponse,
+            'abc',
+            jasmine.any(Function),
+            jasmine.any(Function)
+          );
+        },
+        err => {
+          fail('request should not reject if backend returns successful response');
+        }
+      );
+    });
+  });
+
+  describe('method: mapper', () => {
+    let resolveSpy, rejectSpy;
+    const cacheKey = 'cacheKey-123';
+    const mockResponse = require('../mocks/sample-response');
+
+    beforeEach(() => {
+      resolveSpy = jasmine.createSpy('resolve');
+      rejectSpy = jasmine.createSpy('reject');
+    });
+
+    it('should transform and resolve with correct data when response is valid', () => {
+      projectionsGetService.mapper(
+        null,
+        { statusCode: 200 },
+        mockResponse,
+        cacheKey,
+        resolveSpy,
+        rejectSpy
+      );
+      expect(transformCalled).toBe(true);
+      expect(resolveSpy).toHaveBeenCalledWith(mockResponse.projectedBalances);
+      expect(rejectSpy).not.toHaveBeenCalled();
+    });
+
+    it('should reject if body.resultCode is not true', () => {
+      projectionsGetService.mapper(null, { statusCode: 200 }, { resultCode: false }, cacheKey, resolveSpy, rejectSpy);
+      expect(rejectSpy).toHaveBeenCalledWith({ status: 200, message: jasmine.any(Object), error: null });
+      expect(resolveSpy).not.toHaveBeenCalled();
+    });
+
+    it('should reject if error is defined', () => {
+      const error = new Error('Network error');
+      projectionsGetService.mapper(error, { statusCode: 200 }, {}, cacheKey, resolveSpy, rejectSpy);
+      expect(rejectSpy).toHaveBeenCalledWith({ status: 200, message: jasmine.any(Object), error: error });
+      expect(resolveSpy).not.toHaveBeenCalled();
+    });
+
+    it('should reject if response.statusCode is not 200', () => {
+      projectionsGetService.mapper(null, { statusCode: 403 }, mockResponse, cacheKey, resolveSpy, rejectSpy);
+      expect(rejectSpy).toHaveBeenCalledWith({ status: 403, message: jasmine.any(Object), error: null });
+      expect(resolveSpy).not.toHaveBeenCalled();
+    });
+
+    it('should reject with 500 status on parsing error', () => {
+      spyOn(transform, 'apply').and.throwError('Parsing error');
+      projectionsGetService.mapper(null, { statusCode: 200 }, mockResponse, cacheKey, resolveSpy, rejectSpy);
+      expect(rejectSpy).toHaveBeenCalledWith({ status: 500, message: jasmine.any(Object), ex: jasmine.any(Error) });
+      expect(resolveSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('method: createHeaders', () => {
+    it('should return headers with expected format', () => {
+      const headers = projectionsGetService.createHeaders();
+      expect(headers).toEqual(expectHeaders);
+    });
+  });
+
+  describe('method: createBody', () => {
+    it('should return body with expected format', () => {
+      spyOn(projectionsGetService, 'getTargetAssetMix').and.callThrough();
+      spyOn(projectionsGetService, 'getConfidenceLevels').and.callThrough();
+      const body = projectionsGetService.createBody(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
+      expect(projectionsGetService.getTargetAssetMix).toHaveBeenCalledWith(tamIds);
+      expect(projectionsGetService.getConfidenceLevels).toHaveBeenCalled();
+      expect(body).toEqual(expectedBody);
+    });
+  });
+
+  describe('method: createOptions', () => {
+    it('should return options with expected format', () => {
+      spyOn(projectionsGetService, 'createHeaders').and.callThrough();
+      spyOn(projectionsGetService, 'createBody').and.callThrough();
+      const options = projectionsGetService.createOptions(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
+      expect(projectionsGetService.createHeaders).toHaveBeenCalled();
+      expect(projectionsGetService.createBody).toHaveBeenCalled();
+      expect(options).toEqual(expectOptions);
+    });
+  });
+
+  describe('method: getConfidenceLevels', () => {
+    it('should return confidence levels from config', () => {
+      const confidenceLevels = projectionsGetService.getConfidenceLevels();
+      expect(confidenceLevels).toEqual([0.5, 0.9]);
+    });
+  });
+
+  describe('method: getTargetAssetMix', () => {
+    it('should return asset allocations for given tamIds', () => {
+      const assetAllocations = projectionsGetService.getTargetAssetMix(tamIds);
+      expect(assetAllocations).toEqual([{ assetAllocationId: 85, context: 'Standard', product: 'ppa' }]);
+    });
+  });
+
+  describe('method: getCacheKey', () => {
+    it('should return cache key with expected format', () => {
+      const cacheKey = projectionsGetService.getCacheKey(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
+      expect(cacheKey).toEqual(`[${tamIds}]|${endDate}|${taxable}|${startingBalance}|${recurringDepositAmt}`);
+    });
+  });
+
+  describe('method: clearCache', () => {
+    it('should clear cache for given parameters', () => {
+      spyOn(projectionsGetService, 'getCacheKey').and.returnValue('cacheKey');
+      spyOn(projectionsGetService.projectionsCache, 'del');
+      projectionsGetService.clearCache(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
+      expect(projectionsGetService.getCacheKey).toHaveBeenCalledWith(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
+      expect(projectionsGetService.projectionsCache.del).toHaveBeenCalledWith('cacheKey');
+    });
+  });
+});
