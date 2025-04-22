@@ -130,3 +130,22 @@ I have graphql response errrors message below
     ]
 }
 How can I fix this error?
+query projectionsChartData($retirementAgeProfileInput: RetirementAgeProfileInput!) {
+  getInvestorAgeProfilePosition(retirementAgeProfileInput: $retirementAgeProfileInput) {
+    retirementAge
+  }
+}
+
+  {
+  "retirementAgeProfileInput": {
+    "acctNum": "Y84001379"
+  }
+}
+
+   {
+  "data": {
+    "getInvestorAgeProfilePosition": {
+      "retirementAge": [65]
+    }
+  }
+} 
