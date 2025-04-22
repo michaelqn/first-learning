@@ -1,858 +1,132 @@
-/**
- * Copyright 2019 FMR LLC
- * All Rights Reserved
- * Fidelity Confidential Information
- */
-'use strict';
 
-const request = require('requestretry'),
-  NodeCache = require('node-cache'),
-  transform = require('jsonpath-object-transform'),
-  { config, logger, LogTypes, getStandardLog } = require('../service.conf'),
-  standardLog = getStandardLog('ProjectionsGetRequest'),
-  projectionsCache = new NodeCache({
-    stdTTL: 1800,
-  });
-
-// default has to be set here instead of service.conf because service.conf is ignored when there's a local
-config.PROJECTIONS_RESPONSE_TEMPLATE = config.PROJECTIONS_RESPONSE_TEMPLATE || {
-  projectedBalances: [
-    '$.projectedBalances',
-    {
-      assetAllocation: {
-        name: '$.assetAllocation.name',
-        assetAllocationId: '$.assetAllocation.assetAllocationId',
-      },
-      balancePerConfidenceLevels: [
-        '$.balancePerConfidenceLevels',
-        {
-          confidenceLevel: '$.confidenceLevel.value',
-          balance: [
-            '$.balance',
-            {
-              asOfDate: '$.asOfDate',
-              recurringDepositAmt: '$.amount.value',
-            },
-          ],
+export class ProjectionCardDataComponent implements OnInit {
+  queryParameters: StateComponentQuery;
+  acctNum = 'Y84001379';
+  projectionsInputs: any;
+  projectionsChartQueryInputs: any;
+  ngOnInit(): void {
+    this.queryParameters = {
+      query: PROJECTIONS_CHART_QUERY,
+      parameters: {
+        retirementAgeProfileInput: {
+          acctNum: this.acctNum,
         },
-      ],
-    },
-  ],
-};
-
-class ProjectionsGetRequest {
-  constructor(req, maxAttempts, retryDelay) {
-    this.req = req;
-    // only use these if you want to override the set by token values
-    this.maxAttempts = maxAttempts;
-    this.retryDelay = retryDelay;
-  }
-
-  /**
-   * call() - get projected account values based on the provided data.
-   * @return {Promise} either cached response or live response.
-   */
-  call(endDate, taxable, startingBalance, tamIds, recurringDepositAmt) {
-    logger.debug(this.req, standardLog.createLog(LogTypes.INITIALIZE));
-    const cacheKey = this.getCacheKey(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
-    const cachedProjections = projectionsCache.get(cacheKey);
-    // If the data is cached, use it; else make the request
-    if (cachedProjections) {
-      logger.debug(this.req, standardLog.createLog(LogTypes.COMPLETE_CACHE));
-      return Promise.resolve(cachedProjections);
-    } else {
-      return this.request(this.createOptions(endDate, taxable, startingBalance, tamIds, recurringDepositAmt), cacheKey);
-    }
-  }
-
-  /**
-   * Creates headers that are used to call the backend service
-   * @return {object} header for the call to the backend service
-   */
-  createHeaders() {
-    const headers = {
-      'Content-Type': 'application/json',
-      'log-tracking-id': this.req.id,
-      'calling-app-id': config.APP_ID,
-      AppName: config.APP_NAME,
-    };
-    logger.debug(this.req, standardLog.createLog(LogTypes.CREATE_HEADER), headers);
-    return headers;
-  }
-
-  createBody(endDate, taxable, startingBalance, tamIds, recurringDepositAmt) {
-    const body = Object.assign({
-      projectionPeriod: endDate,
-      isTaxable: taxable,
-      projectionFrequency: config.PROJECTIONS_FREQUENCY,
-      startingBalance: startingBalance,
-      contribution: recurringDepositAmt,
-      confidenceLevels: this.getConfidenceLevels(),
-      assetAllocations: this.getTargetAssetMix(tamIds),
-    });
-    logger.debug(this.req, standardLog.createLog(LogTypes.CREATE_BODY), body);
-    return body;
-  }
-
-  /**
-   * Creates options that are used for the request
-   * @return {object} options for the call to the backend service
-   */
-  createOptions(endDate, taxable, startingBalance, tamIds, recurringDepositAmt) {
-    const options = {
-      url: config.PROJECTIONS_SERVICE_ENDPOINT,
-      method: 'post',
-      headers: this.createHeaders(),
-      rejectUnauthorized: config.REJECT_UNAUTHORIZED,
-      body: this.createBody(endDate, taxable, startingBalance, tamIds, recurringDepositAmt),
-      maxAttempts: this.maxAttempts,
-      retryDelay: this.retryDelay,
-    };
-    logger.debug(this.req, standardLog.createLog(LogTypes.CREATE_OPTIONS), options);
-    return options;
-  }
-
-  /*
-   * getConfidenceLevels constructs the confidenceLevels object using token from config
-   * @return confidenceLevels object that should be appended to the backend request.
-   */
-  getConfidenceLevels() {
-   const confidenceLevels = []
-   config.PROJECTIONS_CONFIDENCE_LEVELS.forEach(confidenceLevel => {
-     confidenceLevels.push(confidenceLevel);
-   });
-   return confidenceLevels;
- }
-
-  /*
-   * getTargetAssetMix constructs the assetAllotation object using tamIds from query params
-   * @param array of tamIds
-   * @return assetAllocation object with allocationId,context,product.
-   */
-  getTargetAssetMix(tamIds) {
-    const assetAllocations = [];
-    tamIds.forEach((tamId) => {
-      assetAllocations.push({
-        assetAllocationId: tamId,
-        context: config.PROJECTIONS_CONTEXT,
-        product: config.PRODUCT_CODE,
-      });
-    });
-    return assetAllocations;
-  }
-
-  request(options, cacheKey) {
-    return new Promise((resolve, reject) => {
-      // this is type "silly" because all of these values should have been logged previously - this log is only the aggregate
-      logger.silly(this.req, standardLog.createLog(LogTypes.REQUEST), options);
-      request.withGatewayOauth(this.req.id).request(options, (error, response, body) => {
-        this.mapper(error, response, body, cacheKey, resolve, reject);
-      });
-    });
-  }
-
-  mapper(error, response, body, cacheKey, resolve, reject) {
-    // complete should always be logged because variations in time can be indicative of errors without even catching errors
-    logger.debug(
-      this.req,
-      standardLog.createLog(LogTypes.COMPLETE),
-      response,
-      response ? { attempts: response.attempts } : null
-    );
-    // handle response
-    try {
-      if (!error && transform(response, '$.statusCode') === 200 && transform(body, '$.resultCode') === true) {
-        const result = transform(body, config.PROJECTIONS_RESPONSE_TEMPLATE).projectedBalances;
-        projectionsCache.set(cacheKey, result);
-        resolve(result);
-      } else {
-        logger.error(this.req, standardLog.createLog(LogTypes.ERROR_DP), response, error);
-        reject({ status: response.statusCode, message: response, error: error });
-      }
-    } catch (ex) {
-      logger.error(this.req, standardLog.createLog(LogTypes.ERROR_PARSING), ex);
-      reject({ status: 500, message: response, ex: ex });
-    }
-  }
-
-  getCacheKey(endDate, taxable, startingBalance, tamIds, recurringDepositAmt) {
-    const cacheKey =
-      JSON.stringify(tamIds) + '|' + endDate + '|' + taxable + '|' + startingBalance + '|' + recurringDepositAmt;
-    logger.silly(this.req, standardLog.createLog(LogTypes.CACHE_KEY), cacheKey);
-    return cacheKey;
-  }
-
-  clearCache(endDate, taxable, startingBalance, tamIds, recurringDepositAmt) {
-    const cacheKey = this.getCacheKey(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
-    logger.silly(this.req, standardLog.createLog(LogTypes.CACHE_CLEAR), cacheKey);
-    projectionsCache.del(cacheKey);
+      },
+    } as StateComponentQuery
   }
 }
-module.exports = ProjectionsGetRequest;
-================================
-/**
- * Created by a566519 on 02/08/2018.
- */
 
-module.exports = {
-  projectedBalances: [
-    {
-      assetAllocation: {
-        name: 'Moderate with Income',
-        assetAllocationId: 30,
-        context: 'Standard',
-        product: 'DMA'
-      },
-      balancePerConfidenceLevels: [
-        {
-          confidenceLevel: '0.1', //flattened
-          balance: [
-            {
-              asOfDate: '2022-09-23T01:33:18.745+0000',
-              amount: '179626.39623399999' //flattened
-            },
-            {
-              asOfDate: '2023-01-23T01:33:18.745+0000',
-              amount: '204912.29158600004' //flattened
-            },
-            {
-              asOfDate: '2023-02-23T01:33:18.745+0000',
-              amount: '211355.949702' //flattened
-            },
-            {
-              asOfDate: '2023-03-23T01:33:18.745+0000',
-              amount: '217859.774078' //flattened
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  ResponseDiagnosticV2: {
-    //updated to version v2
-    type: 'type',
-    source: 'source',
-    code: 'code',
-    message: 'message',
-    detail: 'detail'
+// query
+export const PROJECTIONS_CHART_QUERY = `query projectionsChartData ($retirementAgeProfileInput: RetirementAgeProfileInput!) {
+  getInvestorAgeProfilePosition (retirementAgeProfileInput: $retirementAgeProfileInput) {
+       retirementAge 
   }
-};
-++++++++++++++++++++++++++++++++
-'use strict';
+}`;
 
-const nock = require('nock'),
-  request = require('request'),
-  { config } = require('../service.conf'),
-  transform = require('jsonpath-object-transform'),
-  proxyquire = require('proxyquire').noPreserveCache();
+//resolver
+@Resolver()
+export class ProjectionCardResolver {
 
-const APP_ID = 'abc123',
-  APP_NAME = 'bob',
-  PROJECTIONS_FREQUENCY = 'monthly',
-  PROJECTIONS_CONTEXT = 'Standard',
-  PRODUCT_CODE = 'ppa',
-  req = {
-    id: '123',
-    user: {},
-    headers: {}
-  };
+  constructor(
+    protected dao: PositionDao, 
+    protected investorProfileService: InvestorProfileService,
+    protected gdService: GoalDateService,
+    protected invesProfDao: InvestorProfileDao,
+    protected positionDao: PositionDao
+  ) {}
 
-const expectHeaders = {
-  'Content-Type': 'application/json',
-  'log-tracking-id': req.id,
-  'calling-app-id': APP_ID,
-  AppName: APP_NAME
-};
-const host = 'https://mock.fmr.com';
-const path = '/projections';
+  /**
+   * Makes the call to position service
+   * @param {RetirementAgeProfileInput} retirementAgeProfileInput - contains customer details
+   * @return {Observable<RetirementAgeRes | ApolloError>} - Observable response
+   */
+  @Query(() => RetirementAgeRes)
+  getInvestorAgeProfilePosition(
+    @Args('retirementAgeProfileInput') retirementAgeProfileInput: RetirementAgeProfileInput
+  ): Observable<RetirementAgeRes | ApolloError> {
+    const acctNum = retirementAgeProfileInput.acctNum;
+    const invesProRequest = new InvestorProfileRequest();
+    invesProRequest.product = 'DMA';
+    invesProRequest.acctNum = acctNum;
 
-let projectionsGetService,
-  ProjectionsGetServiceClass,
-  startingBalance,
-  taxable,
-  tamIds,
-  endDate,
-  recurringDepositAmt,
-  expectedBody,
-  expectOptions,
-  transformCalled;
-
-describe('Projections Get Service', function() {
-  beforeEach(() => {
-    // there should be a way to spy on transform - open to ideas
-    transformCalled = false;
-    startingBalance = 3000;
-    taxable = true;
-    tamIds = [85];
-    endDate = Date.now() + 3600 * 24 * 365 * 5;
-    recurringDepositAmt = 1000;
-    expectedBody = {
-      projectionPeriod: endDate,
-      isTaxable: taxable,
-      projectionFrequency: PROJECTIONS_FREQUENCY,
-      startingBalance: 3000,
-      contribution: 1000,
-      confidenceLevels: [0.5, 0.9],
-      assetAllocations: [{ assetAllocationId: 85, context: 'Standard', product: 'ppa' }]
-    };
-
-    expectOptions = {
-      url: host + path,
-      method: 'post',
-      rejectUnauthorized: false,
-      maxAttempts: 3,
-      retryDelay: 1000,
-      headers: expectHeaders,
-      body: expectedBody
-    };
-
-    ProjectionsGetServiceClass = proxyquire('./get', {
-      '../service.conf': {
-        config: {
-          APP_ID: APP_ID,
-          APP_NAME: APP_NAME,
-          PROJECTIONS_SERVICE_ENDPOINT: host + path,
-          PROJECTIONS_CONFIDENCE_LEVELS: [0.5, 0.9],
-          PROJECTIONS_FREQUENCY: PROJECTIONS_FREQUENCY,
-          PROJECTIONS_CONTEXT: PROJECTIONS_CONTEXT,
-          PRODUCT_CODE: PRODUCT_CODE,
-          REJECT_UNAUTHORIZED: false
-        }
-      },
-      requestretry: {
-        withGatewayOauth: () => {
-          return {
-            request: (...args) => {
-              // needs the json option even though it's set by default with hybrid utilities
-              args[0].json = true;
-              return request(args[0], args[1]);
-            }
-          };
-        }
-      },
-      'jsonpath-object-transform': (...args) => {
-        transformCalled = true;
-        return transform.apply(transform, args);
-      }
-    });
-    projectionsGetService = new ProjectionsGetServiceClass(req, 3, 1000);
-  });
-
-  afterEach(() => {
-    nock.cleanAll();
-  });
-
-  describe('method: call', () => {
-    it('should make a request method with options created by createOptions, createHeaders, and createBody methods', () => {
-      // arrange
-      spyOn(projectionsGetService, 'request').and.returnValue({ then: () => {} });
-      spyOn(projectionsGetService, 'createHeaders');
-      spyOn(projectionsGetService, 'createBody');
-      spyOn(projectionsGetService, 'getCacheKey').and.callThrough();
-      // act
-      projectionsGetService.call(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
-      // assert
-      expect(projectionsGetService.request).toHaveBeenCalled();
-      expect(projectionsGetService.createHeaders).toHaveBeenCalled();
-      expect(projectionsGetService.createBody).toHaveBeenCalled();
-      expect(projectionsGetService.getCacheKey).toHaveBeenCalledWith(
-        endDate,
-        taxable,
-        startingBalance,
-        tamIds,
-        recurringDepositAmt
-      );
-    });
-  });
-
-  it('transforms the response from the backend based on the provided template', () => {
-    // Arrange
-    const resolveSpy = jasmine.createSpy('resolve');
-    const rejectSpy = jasmine.createSpy('reject');
-    
-    // Act
-    projectionsGetService.mapper(
-      null,
-      { statusCode: 200 },
-      require('../mocks/sample-response'),
-      'cacheKey-123',
-      resolveSpy,
-      rejectSpy
-    );
-    
-    // Assert
-    expect(transformCalled).toBe(true);
-    expect(resolveSpy).toHaveBeenCalledWith([
-      {
-        assetAllocation: { name: 'Moderate with Income', assetAllocationId: 30 },
-        balancePerConfidenceLevels: [
-          {
-            confidenceLevel: 0.1,
-            balance: [
-              { asOfDate: '2022-09-23T01:33:18.745+0000', amount: '179626.39623399999' },
-              { asOfDate: '2023-01-23T01:33:18.745+0000', amount: '204912.29158600004' },
-              { asOfDate: '2023-02-23T01:33:18.745+0000', amount: '211355.949702' },
-              { asOfDate: '2023-03-23T01:33:18.745+0000', amount: '217859.774078' },
-            ],
-          },
-        ],
-      },
-    ]);
-  });
-  
-  
-  // it('transforms the response from the backend based on the provided template', () => {
-  //   const resolveSpy = jasmine.createSpy('resolve');
-  //     const rejectSpy = jasmine.createSpy('reject');
-  //   // act
-  //   projectionsGetService.mapper(
-  //     null,
-  //     { statusCode: 200 },
-  //     require('../mocks/sample-response'),
-  //     resolveSpy,
-  //     rejectSpy
-  //   );
-  //   // assert
-  //   expect(transformCalled).toBe(true);
-  //   expect(resolveSpy).toHaveBeenCalledWith([
-  //     {
-  //       assetAllocation: { name: 'Conservative', assetAllocationId: 20 },
-  //       balancePerConfidenceLevels: [
-  //         {
-  //           confidenceLevel: 0.05,
-  //           balance: [{ asOfDate: '2018-02-08T14:22:10.295+0000', recurringDepositAmt: 5000 }],
-  //         },
-  //       ],
-  //     },
-  //   ]);
-  //   expect(rejectSpy).not.toHaveBeenCalled();
-  // });
-  
-
-  describe('method: request', () => {
-    it('should make a request to the backend and return results to the mapper', () => {
-      nock(host)
-        .post(path)
-        .reply(200, require('../mocks/sample-response'));
-      spyOn(projectionsGetService, 'mapper').and.callThrough();
-
-      return projectionsGetService.request(projectionsGetService.createOptions(null, null, null, [85]), 'abc').then(
-        () => {
-          expect(projectionsGetService.mapper).toHaveBeenCalled();
-        },
-        err => {
-          fail('request should not reject if backend returns successful response');
-        }
-      );
-    });
-  });
-
-  describe('method: mapper', () => {
-    let resolveSpy, rejectSpy;
-    const cacheKey = 'cacheKey-123';
-    beforeEach(() => {
-      resolveSpy = jasmine.createSpy('resolve');
-      rejectSpy = jasmine.createSpy('reject');
-    });
-
-    it('should call resolve if response exists and response status code is 200', () => {
-      projectionsGetService.mapper(
-        null,
-        { statusCode: 200 },
-        require('../mocks/sample-response'),
-        cacheKey,
-        resolveSpy,
-        rejectSpy
-      );
-      expect(resolveSpy).toHaveBeenCalled();
-    });
-
-    it('should call reject if body.resultCode is not true', () => {
-      projectionsGetService.mapper(null, { statusCode: 200 }, { resultCode: false }, cacheKey, resolveSpy, rejectSpy);
-      expect(rejectSpy).toHaveBeenCalled();
-    });
-
-    it('should call reject if error is defined', () => {
-      projectionsGetService.mapper(new Error('yadayada'), { statusCode: 200 }, {}, cacheKey, resolveSpy, rejectSpy);
-      expect(rejectSpy).toHaveBeenCalled();
-    });
-
-    it('should call reject if response is empty', () => {
-      projectionsGetService.mapper(null, {}, {}, cacheKey, resolveSpy, rejectSpy);
-      expect(rejectSpy).toHaveBeenCalled();
-    });
-
-    it('should call reject if response.statusCode is not 200', () => {
-      projectionsGetService.mapper(null, { statusCode: 403 }, {}, cacheKey, resolveSpy, rejectSpy);
-      expect(rejectSpy).toHaveBeenCalled();
-    });
-
-    it('should call reject via the catch block if there is any error in the try block and return a 500', () => {
-      projectionsGetService.mapper(null, null, null, null, resolveSpy, rejectSpy);
-      expect(rejectSpy).toHaveBeenCalledWith({ status: 500, message: null, ex: jasmine.anything() });
-    });
-  });
-
-  describe('method: createHeaders', () => {
-    it('should return right headers with expected format', () => {
-      const actualHeaders = projectionsGetService.createHeaders();
-      expect(actualHeaders).toEqual(expectHeaders);
-    });
-  });
-
-  describe('method: createBody', () => {
-    it('should return right body content with expected format', () => {
-      // arrange
-
-      const expectOptions = {
-        projectionPeriod: endDate,
-        isTaxable: true,
-        projectionFrequency: 'monthly',
-        startingBalance: 3000,
-        contribution: 1000,
-        confidenceLevels: [0.5, 0.9],
-        assetAllocations: [{ assetAllocationId: 85, context: 'Standard', product: 'ppa' }]
-      };
-      spyOn(projectionsGetService, 'getTargetAssetMix').and.callThrough();
-      spyOn(projectionsGetService, 'getConfidenceLevels').and.callThrough();
-      // act
-      const actualBody = projectionsGetService.createBody(
-        endDate,
-        taxable,
-        startingBalance,
-        tamIds,
-        recurringDepositAmt
-      );
-      // assert
-      expect(projectionsGetService.getTargetAssetMix).toHaveBeenCalledWith(tamIds);
-      expect(projectionsGetService.getConfidenceLevels).toHaveBeenCalled();
-      expect(actualBody).toEqual(expectOptions);
-    });
-  });
-
-  describe('method: createOptions', () => {
-    it('should return right options with expected format', () => {
-      // arrange
-      spyOn(projectionsGetService, 'createBody').and.callThrough();
-      spyOn(projectionsGetService, 'createHeaders').and.callThrough();
-
-      // act
-      const actualOptions = projectionsGetService.createOptions(
-        endDate,
-        taxable,
-        startingBalance,
-        tamIds,
-        recurringDepositAmt
-      );
-
-      // assert
-      expect(projectionsGetService.createHeaders).toHaveBeenCalled();
-      expect(projectionsGetService.createBody).toHaveBeenCalled();
-
-      const expectOptions = {
-        url: 'https://mock.fmr.com/projections',
-        method: 'post',
-        headers: projectionsGetService.createHeaders(),
-        rejectUnauthorized: config.REJECT_UNAUTHORIZED,
-        body: {
-          projectionPeriod: endDate,
-          isTaxable: taxable,
-          projectionFrequency: 'monthly',
-          startingBalance: 3000,
-          contribution: 1000,
-          confidenceLevels: [0.5, 0.9],
-          assetAllocations: [{ assetAllocationId: tamIds[0], context: config.PROJECTIONS_CONTEXT, product: 'ppa' }]
-        },
-        maxAttempts: projectionsGetService.maxAttempts,
-        retryDelay: projectionsGetService.retryDelay
-      };
-
-      expect(actualOptions).toEqual(expectOptions);
-    });
-  });
-
-  describe('method: getCacheKey', () => {
-    it('should return right getCacheKey with expected format', () => {
-      const expectedCacheKey = '[85]|' + endDate + '|' + taxable + '|' + startingBalance + '|' + recurringDepositAmt,
-        actualCacheKey = projectionsGetService.getCacheKey(
-          endDate,
-          taxable,
-          startingBalance,
-          tamIds,
-          recurringDepositAmt
+    return this.invesProfDao.get(invesProRequest).pipe(
+      concatMap((invesProResp) => {
+        const scoreRequest = this.investorProfileService.getScoringReq(invesProResp);
+        const retirementAge = this.getBoundedEndDate(
+          get(invesProResp, 'investorProfile.goalDetail.goalStartDt') || this.gdService.getGoalStartDate(scoreRequest),
+          scoreRequest.investorProfileDetail.reasonForInvesting
         );
-      expect(actualCacheKey).toEqual(expectedCacheKey);
-    });
-  });
-});
-===============================
-'use strict';
 
-const nock = require('nock'),
-  request = require('request'),
-  { config } = require('../service.conf'),
-  transform = require('jsonpath-object-transform'),
-  proxyquire = require('proxyquire').noPreserveCache();
+        // RetirementAgeRes object with retirementAge as an array
+        const retirementAgeRes: RetirementAgeRes = {
+          retirementAge: [retirementAge]
+        };
 
-const APP_ID = 'abc123',
-  APP_NAME = 'bob',
-  PROJECTIONS_FREQUENCY = 'monthly',
-  PROJECTIONS_CONTEXT = 'Standard',
-  PRODUCT_CODE = 'ppa',
-  req = {
-    id: '123',
-    user: {},
-    headers: {}
-  };
+        return of(retirementAgeRes);
+      })
+    );
+  }
 
-const expectHeaders = {
-  'Content-Type': 'application/json',
-  'log-tracking-id': req.id,
-  'calling-app-id': APP_ID,
-  AppName: APP_NAME
-};
-const host = 'https://mock.fmr.com';
-const path = '/projections';
+  getBoundedEndDate(endDate: any, reasonForInvesting: any) {
+    // This code will enforce a minimum of three years out
+    const thisYear = new Date().getUTCFullYear(),
+      // Thirty Years Out in UTC timestamp for non-retirement
+      maxHorizonLumpSum = new Date().setUTCFullYear(thisYear + 30),
+      // Fifty Years Out in UTC timestamp for retirement
+      maxHorizonRetirement = new Date().setUTCFullYear(thisYear + 50),
+      // Min projections time period -> Three years out in UTC Timestamp:
+      minHorizonLumpSum = new Date().setUTCFullYear(thisYear + 3);
+    let boundedTimeHorizon = minHorizonLumpSum;
+    if (reasonForInvesting === 'retirement') {
+      boundedTimeHorizon = Math.min(
+        Math.max(endDate, minHorizonLumpSum),
+        maxHorizonRetirement
+      );
+    } else if (reasonForInvesting === 'other') {
+      boundedTimeHorizon = Math.min(
+        Math.max(endDate, minHorizonLumpSum),
+        maxHorizonLumpSum
+      );
+    }
+    return boundedTimeHorizon;
+  }
+}
+// Type data
+import { Field, ObjectType, InputType, ArgsType } from '@nestjs/graphql';
 
-let projectionsGetService,
-  ProjectionsGetServiceClass,
-  startingBalance,
-  taxable,
-  tamIds,
-  endDate,
-  recurringDepositAmt,
-  expectedBody,
-  expectOptions,
-  transformCalled;
+@InputType()
+@ArgsType()
+export class RetirementAgeProfileInput {
+  @Field()
+  acctNum!: string;
+}
 
-describe('Projections Get Service', function() {
-  beforeEach(() => {
-    transformCalled = false;
-    startingBalance = 3000;
-    taxable = true;
-    tamIds = [85];
-    endDate = Date.now() + 3600 * 24 * 365 * 5;
-    recurringDepositAmt = 1000;
-    expectedBody = {
-      projectionPeriod: endDate,
-      isTaxable: taxable,
-      projectionFrequency: PROJECTIONS_FREQUENCY,
-      startingBalance: 3000,
-      contribution: 1000,
-      confidenceLevels: [0.5, 0.9],
-      assetAllocations: [{ assetAllocationId: 85, context: 'Standard', product: 'ppa' }]
-    };
-
-    expectOptions = {
-      url: host + path,
-      method: 'post',
-      rejectUnauthorized: false,
-      maxAttempts: 3,
-      retryDelay: 1000,
-      headers: expectHeaders,
-      body: expectedBody
-    };
-
-    ProjectionsGetServiceClass = proxyquire('./get', {
-      '../service.conf': {
-        config: {
-          APP_ID: APP_ID,
-          APP_NAME: APP_NAME,
-          PROJECTIONS_SERVICE_ENDPOINT: host + path,
-          PROJECTIONS_CONFIDENCE_LEVELS: [0.5, 0.9],
-          PROJECTIONS_FREQUENCY: PROJECTIONS_FREQUENCY,
-          PROJECTIONS_CONTEXT: PROJECTIONS_CONTEXT,
-          PRODUCT_CODE: PRODUCT_CODE,
-          REJECT_UNAUTHORIZED: false
-        }
-      },
-      requestretry: {
-        withGatewayOauth: () => {
-          return {
-            request: (...args) => {
-              args[0].json = true;
-              return request(args[0], args[1]);
+@ObjectType()
+export class RetirementAgeRes {
+  @Field(() => [Number])
+  retirementAge?: number[];
+}
+I have graphql response errrors message below
+{
+    "errors": [
+        {
+            "message": "Unknown type \"RetirementAgeProfileInput\".",
+            "extensions": {
+                "code": "GRAPHQL_VALIDATION_FAILED",
+                "errors": [
+                    "Unknown type \"RetirementAgeProfileInput\"."
+                ]
             }
-          };
-        }
-      },
-      'jsonpath-object-transform': (...args) => {
-        transformCalled = true;
-        return transform.apply(transform, args);
-      }
-    });
-    projectionsGetService = new ProjectionsGetServiceClass(req, 3, 1000);
-  });
-
-  afterEach(() => {
-    nock.cleanAll();
-  });
-
-  describe('method: call', () => {
-    it('should make a request method with options created by createOptions, createHeaders, and createBody methods', () => {
-      spyOn(projectionsGetService, 'request').and.returnValue({ then: () => {} });
-      spyOn(projectionsGetService, 'createHeaders');
-      spyOn(projectionsGetService, 'createBody');
-      spyOn(projectionsGetService, 'getCacheKey').and.callThrough();
-      projectionsGetService.call(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
-      expect(projectionsGetService.request).toHaveBeenCalled();
-      expect(projectionsGetService.createHeaders).toHaveBeenCalled();
-      expect(projectionsGetService.createBody).toHaveBeenCalled();
-      expect(projectionsGetService.getCacheKey).toHaveBeenCalledWith(
-        endDate,
-        taxable,
-        startingBalance,
-        tamIds,
-        recurringDepositAmt
-      );
-    });
-
-    it('should return cached projections if available', () => {
-      const cachedData = [{ assetAllocation: { name: 'Cached' } }];
-      spyOn(projectionsGetService, 'getCacheKey').and.returnValue('cacheKey');
-      spyOn(projectionsGetService, 'request');
-      projectionsGetService.projectionsCache.set('cacheKey', cachedData);
-      const result = projectionsGetService.call(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
-      expect(projectionsGetService.request).not.toHaveBeenCalled();
-      return result.then(data => {
-        expect(data).toEqual(cachedData);
-      });
-    });
-  });
-
-  describe('method: request', () => {
-    it('should make a request to the backend and return results to the mapper', () => {
-      const mockResponse = require('../mocks/sample-response');
-      nock(host)
-        .post(path)
-        .reply(200, mockResponse);
-      spyOn(projectionsGetService, 'mapper').and.callThrough();
-      return projectionsGetService.request(projectionsGetService.createOptions(endDate, taxable, startingBalance, tamIds, recurringDepositAmt), 'abc').then(
-        () => {
-          expect(projectionsGetService.mapper).toHaveBeenCalledWith(
-            null,
-            jasmine.any(Object),
-            mockResponse,
-            'abc',
-            jasmine.any(Function),
-            jasmine.any(Function)
-          );
         },
-        err => {
-          fail('request should not reject if backend returns successful response');
+        {
+            "message": "Cannot query field \"getInvestorAgeProfilePosition\" on type \"Query\".",
+            "extensions": {
+                "code": "GRAPHQL_VALIDATION_FAILED",
+                "errors": [
+                    "Cannot query field \"getInvestorAgeProfilePosition\" on type \"Query\"."
+                ]
+            }
         }
-      );
-    });
-  });
-
-  describe('method: mapper', () => {
-    let resolveSpy, rejectSpy;
-    const cacheKey = 'cacheKey-123';
-    const mockResponse = require('../mocks/sample-response');
-
-    beforeEach(() => {
-      resolveSpy = jasmine.createSpy('resolve');
-      rejectSpy = jasmine.createSpy('reject');
-    });
-
-    it('should transform and resolve with correct data when response is valid', () => {
-      projectionsGetService.mapper(
-        null,
-        { statusCode: 200 },
-        mockResponse,
-        cacheKey,
-        resolveSpy,
-        rejectSpy
-      );
-      expect(transformCalled).toBe(true);
-      expect(resolveSpy).toHaveBeenCalledWith(mockResponse.projectedBalances);
-      expect(rejectSpy).not.toHaveBeenCalled();
-    });
-
-    it('should reject if body.resultCode is not true', () => {
-      projectionsGetService.mapper(null, { statusCode: 200 }, { resultCode: false }, cacheKey, resolveSpy, rejectSpy);
-      expect(rejectSpy).toHaveBeenCalledWith({ status: 200, message: jasmine.any(Object), error: null });
-      expect(resolveSpy).not.toHaveBeenCalled();
-    });
-
-    it('should reject if error is defined', () => {
-      const error = new Error('Network error');
-      projectionsGetService.mapper(error, { statusCode: 200 }, {}, cacheKey, resolveSpy, rejectSpy);
-      expect(rejectSpy).toHaveBeenCalledWith({ status: 200, message: jasmine.any(Object), error: error });
-      expect(resolveSpy).not.toHaveBeenCalled();
-    });
-
-    it('should reject if response.statusCode is not 200', () => {
-      projectionsGetService.mapper(null, { statusCode: 403 }, mockResponse, cacheKey, resolveSpy, rejectSpy);
-      expect(rejectSpy).toHaveBeenCalledWith({ status: 403, message: jasmine.any(Object), error: null });
-      expect(resolveSpy).not.toHaveBeenCalled();
-    });
-
-    it('should reject with 500 status on parsing error', () => {
-      spyOn(transform, 'apply').and.throwError('Parsing error');
-      projectionsGetService.mapper(null, { statusCode: 200 }, mockResponse, cacheKey, resolveSpy, rejectSpy);
-      expect(rejectSpy).toHaveBeenCalledWith({ status: 500, message: jasmine.any(Object), ex: jasmine.any(Error) });
-      expect(resolveSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('method: createHeaders', () => {
-    it('should return headers with expected format', () => {
-      const headers = projectionsGetService.createHeaders();
-      expect(headers).toEqual(expectHeaders);
-    });
-  });
-
-  describe('method: createBody', () => {
-    it('should return body with expected format', () => {
-      spyOn(projectionsGetService, 'getTargetAssetMix').and.callThrough();
-      spyOn(projectionsGetService, 'getConfidenceLevels').and.callThrough();
-      const body = projectionsGetService.createBody(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
-      expect(projectionsGetService.getTargetAssetMix).toHaveBeenCalledWith(tamIds);
-      expect(projectionsGetService.getConfidenceLevels).toHaveBeenCalled();
-      expect(body).toEqual(expectedBody);
-    });
-  });
-
-  describe('method: createOptions', () => {
-    it('should return options with expected format', () => {
-      spyOn(projectionsGetService, 'createHeaders').and.callThrough();
-      spyOn(projectionsGetService, 'createBody').and.callThrough();
-      const options = projectionsGetService.createOptions(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
-      expect(projectionsGetService.createHeaders).toHaveBeenCalled();
-      expect(projectionsGetService.createBody).toHaveBeenCalled();
-      expect(options).toEqual(expectOptions);
-    });
-  });
-
-  describe('method: getConfidenceLevels', () => {
-    it('should return confidence levels from config', () => {
-      const confidenceLevels = projectionsGetService.getConfidenceLevels();
-      expect(confidenceLevels).toEqual([0.5, 0.9]);
-    });
-  });
-
-  describe('method: getTargetAssetMix', () => {
-    it('should return asset allocations for given tamIds', () => {
-      const assetAllocations = projectionsGetService.getTargetAssetMix(tamIds);
-      expect(assetAllocations).toEqual([{ assetAllocationId: 85, context: 'Standard', product: 'ppa' }]);
-    });
-  });
-
-  describe('method: getCacheKey', () => {
-    it('should return cache key with expected format', () => {
-      const cacheKey = projectionsGetService.getCacheKey(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
-      expect(cacheKey).toEqual(`[${tamIds}]|${endDate}|${taxable}|${startingBalance}|${recurringDepositAmt}`);
-    });
-  });
-
-  describe('method: clearCache', () => {
-    it('should clear cache for given parameters', () => {
-      spyOn(projectionsGetService, 'getCacheKey').and.returnValue('cacheKey');
-      spyOn(projectionsGetService.projectionsCache, 'del');
-      projectionsGetService.clearCache(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
-      expect(projectionsGetService.getCacheKey).toHaveBeenCalledWith(endDate, taxable, startingBalance, tamIds, recurringDepositAmt);
-      expect(projectionsGetService.projectionsCache.del).toHaveBeenCalledWith('cacheKey');
-    });
-  });
-});
+    ]
+}
+How can I fix this error?
